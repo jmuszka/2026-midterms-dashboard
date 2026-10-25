@@ -1,0 +1,4 @@
+{
+  "_comment": "Permanent election-night videos, synced to the timeline forever (after the night, recorded live streams may be trimmed or made private). Add with: node scripts/stream-archive.mjs add <stream-id> <youtube-url>. stream = an id from config/sources.json streams.list. start/end/length come from the video's own broadcast details.",
+  "videos": []
+}

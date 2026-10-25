@@ -69,10 +69,17 @@ if (other?.host && other.host !== HOST && other.age != null && other.age < STALE
 }
 log(`scraper on ${HOST} → ${process.env.SUPABASE_URL} (tick ${TICK / 1000}s${STANDBY ? ', standby' : ''})`);
 
-let running = false, stopping = false, cycles = 0;
+let running = false, stopping = false, cycles = 0, startedAt = 0;
+const STUCK_AFTER = 90e3;
 async function cycle() {
-  if (running || stopping) return;
-  running = true;
+  if (stopping) return;
+  if (running) {
+    // watchdog: a cycle that never finishes (a hung connection) must not stop the night.
+    // Let the next cycle start; each task still runs at most once at a time (inflight dedupe).
+    if (Date.now() - startedAt < STUCK_AFTER) return;
+    log(`watchdog: cycle stuck for ${Math.round((Date.now() - startedAt) / 1000)}s; starting a new one`);
+  }
+  running = true; startedAt = Date.now();
   try {
     if (STANDBY) {
       const s = await (await import('../lib/poll.mjs')).scraperStatus();

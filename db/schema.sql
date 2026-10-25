@@ -91,6 +91,20 @@ create table if not exists public.stream_ticks (
   primary key (stream_id, t)
 );
 
+-- stream replay: when each recorded video started, ended, and how much YouTube archived
+-- (archives keep at most the first ~12 hours of a stream). Filled by the scraper.
+create table if not exists public.stream_videos (
+  video_id text primary key,
+  stream_id text,
+  title text,
+  start_at timestamptz,
+  end_at timestamptz,
+  length_s int,            -- archived length once the stream ended (null while live)
+  dvr boolean,             -- seekable while live
+  live boolean,
+  updated_at timestamptz not null default now()
+);
+
 -- scraper liveness: one row per poll cycle; the site shows "data paused" when the newest is old
 create table if not exists public.heartbeat (
   id bigserial primary key,
@@ -105,7 +119,7 @@ create index if not exists heartbeat_t_idx on public.heartbeat (t desc);
 do $$
 declare tbl text;
 begin
-  foreach tbl in array array['kv','events','ticks','race_ticks','snapshots','news_items','posts','stream_ticks','heartbeat'] loop
+  foreach tbl in array array['kv','events','ticks','race_ticks','snapshots','news_items','posts','stream_ticks','stream_videos','heartbeat'] loop
     execute format('alter table public.%I enable row level security', tbl);
     execute format('drop policy if exists "public read" on public.%I', tbl);
     execute format('create policy "public read" on public.%I for select to anon, authenticated using (true)', tbl);

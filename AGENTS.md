@@ -4,6 +4,7 @@ Read this before changing anything. It describes what exists, why it is built th
 
 - `docs/RESEARCH.md` — every data source researched on 2026-10-25 with URLs, verdicts and live probe results. Check it before adding or guessing any feed URL.
 - `docs/PLAN.md` — the migration plan and build order to Nov 3, with a status section.
+- `docs/SCRAPER.md` — the election-night scraper: how to run it (and as a systemd service), what each cycle writes, safeguards, tables, checklist, stream archive.
 - `docs/SCRUBBER.md` — the timeline scrubber plan (replay any moment of the night): Supabase time-series schema, bundle format, client clock, transport strip, delivery order.
 - `README.md` — the user-facing overview.
 
@@ -60,6 +61,7 @@ Key decisions:
 - **Events are first-class.** `lib/diff.mjs` emits first_votes, vote_batch, lead_change, margin_tight, race_called, flip_called, race_uncalled, runoff, market_move; poll_close events are synthesised from the clock on read. The feed, ticker, toasts and flips counter all read events.
 - **Calls come only from sources.** CNN's `editorialStatus` (AP) is the only source that sets `called`. State feeds contribute counts and precinct progress and override CNN's counts only when they have counted at least as many votes. There is no in-house projection; the BC `callRiding` heuristic is gone.
 - **Windows are instances.** `{ type, settings }` keyed `type-n`; the WM tree holds instance ids. Layout + instances save to localStorage `us-dash-layout-v1` (previous copy in `-backup`) and to `#l=<deflate-raw base64url>` share links. Cookies are not used.
+- **Streams follow the timeline.** Live timeline = live embed. In replay each stream window uses the YouTube IFrame API: `streamAt()` (public/js/timeline.js) picks the curated archive video (`config/stream-archive.json`) or the recorded live video for that channel at the moment; still-live DVR streams are positioned back from the live edge (`getDuration() - behind`), ended ones by seconds since start within the archived length. Paused/scrubbing = paused on that frame; 1×/2× = plays and re-seeks on >3 s drift; faster = stills. Channels without DVR, unrecorded or offline moments show a note. Headless Chromium cannot play live YouTube, so tests read `data-sync-*` and `data-yt-*` on `.video-box`.
 - **Replay never changes the views.** The transport sets `replay.source` in `core.js`; while replaying, the hub serves results, markets, events, news and social from `timeline.js` at the clock's moment (streams and trends stay live). Supabase's Data API returns at most 1,000 rows per request: every store read that can exceed that uses `pageAll`.
 - **Simulation is a pure function** of (clock, seed). `?sim=1` (30× speed, 12-hour night loop) and `simAt=<minutes after 17:45 ET>` to pin it. Output is flagged `simulated`, calls read "SIMULATED", and the UI shows a red banner. Never present simulated data as real.
 
@@ -97,6 +99,7 @@ Key decisions:
 ```
 npm test                                   # offline, <1 s: parsers, merge, differ, simulator, social, read-only mode
 node tests/timeline.browser.mjs <dir> <url> # scrubber in simulation: replay state equals the server's simulation at that minute
+node tests/streamsync.browser.mjs <dir> <url> # with a scraper running and a READ_ONLY server: stream windows follow the timeline
 node tests/live.browser.mjs <dir> <url>    # with a scraper running and a READ_ONLY server: Realtime nudge (add --paused for the banner)
 npm start & npm run test:browser           # needs chromium: smoke (31 checks) + window manager (all checks), simulation mode
 node tests/smoke.browser.mjs <dir> <url>   # screenshots ws1-4, reader, phone into <dir>

@@ -51,6 +51,7 @@ function merge(add) {
     into.push(...ps.filter((p) => !seen.has(p.post.id)));
   }
   for (const [id, rows] of Object.entries(add.streams || {})) (b.streams[id] ||= []).push(...rows);
+  if (add.videos) { b.videos = add.videos; b.archive = add.archive || {}; } // always sent in full
   if (add.to && (!b.to || add.to > b.to)) b.to = add.to;
   if (add.from && (!b.from || add.from < b.from)) b.from = add.from;
 }
@@ -142,6 +143,34 @@ export function postsAt(list, ms) {
   const posts = p.filter((x) => x.t <= s).map((x) => x.post).sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0)).slice(0, 80);
   return { id: list, name: app.config.social[list]?.name, posts, errors: [], ranAt: new Date(ms).toISOString(), replay: true };
 }
+// What a stream window should show at a moment (docs/SCRUBBER.md §6):
+//   undefined                      -> stay live (simulated night with no curated video for this stream)
+//   { kind: 'video', videoId, mode: 'vod',  pos }       seconds into an ended/archived video
+//   { kind: 'video', videoId, mode: 'edge', behind }    a still-live stream: seconds behind its live edge
+//   { kind: 'none', reason }       not-recorded | before-recording | offline | not-started | not-archived
+export function streamAt(id, ms) {
+  const b = tl.bundle;
+  if (!b) return undefined;
+  for (const vid of b.archive?.[id] || []) { // curated permanent videos first
+    const v = b.videos[vid]; const st = Date.parse(v.start);
+    const len = v.length ? v.length * 1000 : v.end ? Date.parse(v.end) - st : null;
+    if (ms >= st && (len == null || ms <= st + len)) return { kind: 'video', videoId: vid, mode: 'vod', pos: (ms - st) / 1000, title: v.title, archived: true };
+  }
+  if (b.simulated) return undefined;
+  const ticks = b.streams?.[id];
+  if (!ticks?.length) return { kind: 'none', reason: 'not-recorded' };
+  const i = at(ticks.map((x) => x[0]), Math.floor(ms / 1000));
+  if (i < 0) return { kind: 'none', reason: 'before-recording' };
+  const [, videoId, status, title] = ticks[i];
+  if (status !== 'live' || !videoId) return { kind: 'none', reason: status === 'upcoming' ? 'not-started' : 'offline' };
+  const v = b.videos?.[videoId];
+  if (v?.live && v.dvr === false && Date.now() - ms > 60e3) return { kind: 'none', reason: 'no-dvr' }; // this channel cannot be rewound while live
+  if (!v?.start || v.live) return { kind: 'video', videoId, mode: 'edge', behind: Math.max(0, (Date.now() - ms) / 1000), pos: v?.start ? (ms - Date.parse(v.start)) / 1000 : null, dvr: v?.dvr ?? true, title: v?.title || title };
+  const st = Date.parse(v.start), len = v.length ? v.length * 1000 : null;
+  if (len != null && ms > st + len) return { kind: 'none', reason: 'not-archived' };
+  return { kind: 'video', videoId, mode: 'vod', pos: Math.max(0, (ms - st) / 1000), title: v.title };
+}
+
 // density of the night's notable events per bucket, for the strip's markers
 export function markers(buckets) {
   const from = tl.from, to = tl.to;
