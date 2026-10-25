@@ -5,6 +5,7 @@
  *    keep polling through the CDN.
  *  - Paused banner: if the scraper stops reporting, say so instead of showing stale data as live. */
 import { app, $, hub, refreshEvents, etTime } from './core.js';
+import { refresh as refreshTimeline } from './timeline.js';
 
 const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm';
 const PAUSED_AFTER = 180; // seconds without a heartbeat
@@ -19,6 +20,7 @@ function nudge(beat) {
   const ran = new Set(TASK_KEYS(beat?.tasks));
   for (const k of hub.keys()) if (!beat?.tasks || ran.has(k)) hub.refresh(k, v);
   if (!beat?.tasks || ran.has('events')) refreshEvents(v);
+  if (!beat?.tasks || ran.has('results') || ran.has('markets')) refreshTimeline(v); // the scrubber's right edge follows the data
   setPaused(null);
 }
 

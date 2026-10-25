@@ -31,6 +31,7 @@ public/js/layout.js               window instances, settings popover, presets, l
 public/js/core.js                 helpers, data hub (polls only what open windows subscribe to), events, selection bus, toasts
 public/js/seats.js                seat tallies and hemicycle geometry shared by balance/chamber/map
 public/js/reader.js               news reader window (Readability via /api/article)
+public/js/clock.js, timeline.js, transport.js   the scrubber: replay clock, bundle model (state at any moment), the strip
 public/js/views/*.js              window types: balance, map, chamber, feed, race, races, timeline, stream, news, social, markets, trends
 public/data/                      districts-2026.json, states-10m.json, counties-10m.json (TopoJSON)
 lib/routes.mjs                    all /api routes and their CDN freshness
@@ -59,6 +60,7 @@ Key decisions:
 - **Events are first-class.** `lib/diff.mjs` emits first_votes, vote_batch, lead_change, margin_tight, race_called, flip_called, race_uncalled, runoff, market_move; poll_close events are synthesised from the clock on read. The feed, ticker, toasts and flips counter all read events.
 - **Calls come only from sources.** CNN's `editorialStatus` (AP) is the only source that sets `called`. State feeds contribute counts and precinct progress and override CNN's counts only when they have counted at least as many votes. There is no in-house projection; the BC `callRiding` heuristic is gone.
 - **Windows are instances.** `{ type, settings }` keyed `type-n`; the WM tree holds instance ids. Layout + instances save to localStorage `us-dash-layout-v1` (previous copy in `-backup`) and to `#l=<deflate-raw base64url>` share links. Cookies are not used.
+- **Replay never changes the views.** The transport sets `replay.source` in `core.js`; while replaying, the hub serves results, markets, events, news and social from `timeline.js` at the clock's moment (streams and trends stay live). Supabase's Data API returns at most 1,000 rows per request: every store read that can exceed that uses `pageAll`.
 - **Simulation is a pure function** of (clock, seed). `?sim=1` (30× speed, 12-hour night loop) and `simAt=<minutes after 17:45 ET>` to pin it. Output is flagged `simulated`, calls read "SIMULATED", and the UI shows a red banner. Never present simulated data as real.
 
 ## Data sources and their quirks (short form; RESEARCH.md has the detail)
@@ -94,6 +96,7 @@ Key decisions:
 
 ```
 npm test                                   # offline, <1 s: parsers, merge, differ, simulator, social, read-only mode
+node tests/timeline.browser.mjs <dir> <url> # scrubber in simulation: replay state equals the server's simulation at that minute
 node tests/live.browser.mjs <dir> <url>    # with a scraper running and a READ_ONLY server: Realtime nudge (add --paused for the banner)
 npm start & npm run test:browser           # needs chromium: smoke (31 checks) + window manager (all checks), simulation mode
 node tests/smoke.browser.mjs <dir> <url>   # screenshots ws1-4, reader, phone into <dir>

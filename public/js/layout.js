@@ -6,6 +6,7 @@
  * so a whole dashboard can be shared as a link. */
 import { app, esc, selection, toast } from './core.js';
 import { leaf, split, leaves } from './wm.js';
+import { clock } from './clock.js';
 
 const KEY = 'us-dash-layout-v1';
 export const TYPES = {};
@@ -32,7 +33,7 @@ async function inflate(s) {
 /* ---------------- snapshot / restore ---------------- */
 function snapshot() {
   const S = wm.state();
-  return { v: 1, ws: S.ws, special: S.special, floating: S.floating, active: S.active, focus: S.focus, lastFocus: S.lastFocus, inst };
+  return { v: 1, ws: S.ws, special: S.special, floating: S.floating, active: S.active, focus: S.focus, lastFocus: S.lastFocus, inst, ...(clock.mode === 'replay' ? { t: Math.round(clock.t) } : {}) };
 }
 let saveTimer = 0;
 export function persist() {
@@ -72,6 +73,7 @@ export async function restore(presets) {
     try {
       const doc = JSON.parse(await inflate(hash[1]));
       apply(doc);
+      if (doc.t) clock.pending = doc.t; // open the shared moment once the timeline has loaded
       history.replaceState(null, '', location.pathname + location.search);
       toast('Loaded a shared dashboard. Your previous layout is in <b>Reset → Restore my layout</b>.');
       return;

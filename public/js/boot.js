@@ -4,6 +4,7 @@ import { createWM } from './wm.js';
 import * as L from './layout.js';
 import { setupReader } from './reader.js';
 import { startLive } from './live.js';
+import { startTransport } from './transport.js';
 import balance from './views/balance.js';
 import map from './views/map.js';
 import chamber from './views/chamber.js';
@@ -50,6 +51,7 @@ async function main() {
     const d = s.data;
     const st = $('#status');
     if (!d) { st.innerHTML = `<span class="warn">${esc(s.error || 'loading results…')}</span>`; return; }
+    if (d.replay) { st.innerHTML = `<b>REPLAY</b> · ${new Date(d.at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET · as recorded${d.simulated ? ' (simulated night)' : ''} · press L for live`; return; }
     if (d.simulated) { st.innerHTML = `<b class="sim-tag">SIMULATION</b> sim clock ${new Date(d.simTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET · not real results`; return; }
     const reporting = Object.values(d.races).filter((r) => r.totalVotes > 0).length;
     const called = Object.values(d.races).filter((r) => r.called).length;
@@ -66,5 +68,8 @@ async function main() {
   });
   subscribeEvents(() => {}); // keep events flowing for toasts even when no feed window is open
   startLive();
+  startTransport();
+  // a share link pasted into a tab already on the dashboard only changes the hash: load it properly
+  addEventListener('hashchange', () => { if (/^#l=/.test(location.hash)) location.reload(); });
 }
 main().catch((e) => { $('#status').innerHTML = `<span class="warn">Start-up failed: ${esc(e.message)}</span>`; console.error(e); });

@@ -66,7 +66,19 @@ function urlFor(key) {
 const everyFor = (key) => (KEYS[key]?.every || 60) * 1000;
 // v: data version (the scraper heartbeat id). Every viewer nudged by the same heartbeat asks for
 // the same URL, so the CDN fetches it once per heartbeat instead of once per viewer.
+// Replay hook (set by the transport): source(key) returns the data for `key` at the clock's
+// moment, or undefined when the timeline has nothing for that key (live data is kept then).
+export const replay = { source: null, events: null };
+const notify = (key) => { for (const fn of subs.get(key) || []) { try { fn(last.get(key)); } catch (e) { console.error(key, e); } } };
+function fromReplay(key) {
+  const d = replay.source?.(key);
+  if (d === undefined) return false;
+  last.set(key, { data: d, at: Date.now() });
+  notify(key);
+  return true;
+}
 async function pull(key, v) {
+  if (replay.source && fromReplay(key)) return;
   try {
     const u = urlFor(key);
     const data = await getJSON(v ? `${u}${u.includes('?') ? '&' : '?'}v=${v}` : u);
@@ -88,11 +100,18 @@ export const hub = {
   get: (key) => last.get(key)?.data || null,
   refresh: (key, v) => (subs.get(key)?.size ? pull(key, v) : null), // only keys someone is watching
   keys: () => [...subs.keys()].filter((k) => subs.get(k)?.size),
+  replayTick() { for (const k of this.keys()) fromReplay(k); notifyEvents(); },
+  goLive() { for (const k of this.keys()) pull(k); notifyEvents(); },
 };
 
 /* events are incremental (?since=id), merged into one list shared by every window */
 export const events = { list: [], pollCloses: [], now: null, since: 0, subs: new Set(), timer: null, error: null };
+function notifyEvents() {
+  const st = replay.events ? { ...replay.events(), error: null } : events;
+  for (const fn of events.subs) fn(st, []);
+}
 async function pullEvents(v) {
+  if (replay.events) return notifyEvents(); // replaying: no toasts, the list is the timeline's
   try {
     const d = await getJSON(`/api/events?since=${events.since}${simQ('&')}${v ? `&v=${v}` : ''}`);
     const fresh = d.events.filter((e) => e.id > events.since);
@@ -100,6 +119,7 @@ async function pullEvents(v) {
     if (events.list.length > 3000) events.list.splice(0, events.list.length - 3000);
     if (fresh.length) events.since = fresh[fresh.length - 1].id;
     events.pollCloses = d.pollCloses; events.now = d.now; events.error = null;
+    if (replay.events) return notifyEvents(); // the viewer started a replay while this request was in flight
     for (const fn of events.subs) fn(events, fresh);
   } catch (e) { events.error = e.message; for (const fn of events.subs) fn(events, []); }
 }

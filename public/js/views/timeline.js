@@ -34,8 +34,8 @@ export default {
             ${slow.length ? `<br><span class="slow">${slow.map((s) => `<abbr title="${esc(app.config.states[s].slow || app.config.states[s].runoff)}">${s}</abbr>`).join(' ')} count slowly or may go to a runoff</span>` : ''}</span></li>`;
         }).join('')}</ol></div>`;
     };
-    const un = subscribeEvents((st) => { if (app.sim && st.now) now = Date.parse(st.now); draw(); });
-    const timer = setInterval(() => { if (!app.sim) now = Date.now(); draw(); }, 30000);
+    const un = subscribeEvents((st) => { if (st.now) now = Date.parse(st.now); draw(); });
+    const timer = setInterval(() => { if (!app.sim && !document.body.classList.contains('replay')) now = Date.now(); draw(); }, 30000);
     draw();
     return { destroy() { un(); clearInterval(timer); } };
   },

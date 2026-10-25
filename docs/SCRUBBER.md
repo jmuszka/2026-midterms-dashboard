@@ -13,7 +13,7 @@ Nothing in `public/js/views/*` needs to know about replay. That also means the w
 
 ## Status (2026-10-25)
 
-Done: Supabase project provisioned through the Vercel Marketplace; schema applied (all nine tables, RLS select-only for the publishable key, heartbeat in the Realtime publication); `scripts/scraper.mjs` writing snapshots, events, race ticks (changes only), 5-minute keyframes, market ticks (changes only, 15-minute keep-alive), news items, posts, stream changes and the heartbeat; read-only site mode; paused banner; Realtime nudge with versioned refetches. Not yet built: `/api/timeline` bundle, the browser clock, the transport strip (steps 3-5).
+Done: Supabase project provisioned through the Vercel Marketplace; schema applied (all nine tables, RLS select-only for the publishable key, heartbeat in the Realtime publication); `scripts/scraper.mjs` writing snapshots, events, race ticks (changes only), 5-minute keyframes, market ticks (changes only, 15-minute keep-alive), news items, posts, stream changes and the heartbeat; read-only site mode; paused banner; Realtime nudge with versioned refetches. Also done (same day): `/api/timeline` (store and simulation bundles, `?since=` appends), `public/js/clock.js`, `public/js/timeline.js` (state at any moment, exact against the simulator), `public/js/transport.js` (scrub, play at 1×–1200×, keyboard `,` `.` `L`, call/flip markers, poll-close ticks), replay through the data hub for results, markets, events, news and social, share links that carry the moment. Store reads now page around PostgREST's 1,000-row cap. Not done: static export after the night, stream VOD seek, margin sparklines in the race card.
 
 ## 0a. Architecture: one scraper on the owner's machine, a read-only site (decided 2026-10-25)
 
