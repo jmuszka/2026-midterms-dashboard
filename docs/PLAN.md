@@ -17,6 +17,7 @@ Days Oct 26 to Nov 1 of the build order below were completed in one session on O
 | Simulation mode | Done (`?sim=1`), not in the original plan; added to build and rehearse views before real results exist |
 | Tests | offline data tests, browser smoke test, ported WM test |
 | Not done | short share links, Supabase Realtime push, CA adapter, county mini-map inside the race card (county table only) |
+| Next feature | timeline scrubber / replay: see `docs/SCRUBBER.md` |
 
 ## 1. Vision
 

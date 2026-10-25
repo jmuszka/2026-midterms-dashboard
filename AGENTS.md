@@ -4,6 +4,7 @@ Read this before changing anything. It describes what exists, why it is built th
 
 - `docs/RESEARCH.md` — every data source researched on 2026-10-25 with URLs, verdicts and live probe results. Check it before adding or guessing any feed URL.
 - `docs/PLAN.md` — the migration plan and build order to Nov 3, with a status section.
+- `docs/SCRUBBER.md` — the timeline scrubber plan (replay any moment of the night): Supabase time-series schema, bundle format, client clock, transport strip, delivery order.
 - `README.md` — the user-facing overview.
 
 ## What this is
