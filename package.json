@@ -1,0 +1,17 @@
+{
+  "name": "bc-election-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Live BC provincial election night dashboard: Elections BC results map, CBC live stream, news feed, and @JJ_McCullough on X.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "linkedom": "^0.18.14"
+  }
+}

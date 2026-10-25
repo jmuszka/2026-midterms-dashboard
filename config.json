@@ -1,0 +1,122 @@
+{
+  "port": 8787,
+  "electionsBC": {
+    "base": "https://electionsbcenr.blob.core.windows.net/electionsbcenr",
+    "eventPrefix": "GE-2026-10-24",
+    "resultsPage": "https://electionsbcenr.blob.core.windows.net/electionsbcenr/Results_11684_GE-2026-10-24_Party.html"
+  },
+  "seats": 93,
+  "majority": 47,
+  "resultsRefreshSeconds": 60,
+  "parties": [
+    {
+      "id": "CP",
+      "name": "Conservative Party",
+      "short": "CON",
+      "color": "#4A8BE8",
+      "match": [
+        "Conservative Party"
+      ]
+    },
+    {
+      "id": "NDP",
+      "name": "BC NDP",
+      "short": "NDP",
+      "color": "#E06C10",
+      "match": [
+        "BC NDP"
+      ]
+    },
+    {
+      "id": "GP",
+      "name": "BC Green Party",
+      "short": "GRN",
+      "color": "#3DA35D",
+      "match": [
+        "BC Green Party"
+      ]
+    },
+    {
+      "id": "ONE",
+      "name": "OneBC",
+      "short": "ONE",
+      "color": "#A66BD6",
+      "match": [
+        "OneBC"
+      ]
+    },
+    {
+      "id": "CTR",
+      "name": "CentreBC",
+      "short": "CTR",
+      "color": "#BD8F22",
+      "match": [
+        "CentreBC"
+      ]
+    },
+    {
+      "id": "IND",
+      "name": "Independent",
+      "short": "IND",
+      "color": "#B8BEC6",
+      "match": [
+        "Independent",
+        ""
+      ]
+    },
+    {
+      "id": "OTH",
+      "name": "Other",
+      "short": "OTH",
+      "color": "#7A838E",
+      "match": []
+    }
+  ],
+  "news": {
+    "refreshSeconds": 120,
+    "feeds": [
+      {
+        "name": "Google News",
+        "url": "https://news.google.com/rss/search?q=%22BC+election%22+OR+%22B.C.+election%22+OR+%22British+Columbia+election%22&hl=en-CA&gl=CA&ceid=CA:en"
+      },
+      {
+        "name": "CBC British Columbia",
+        "url": "https://www.cbc.ca/webfeed/rss/rss-canada-britishcolumbia"
+      }
+    ]
+  },
+  "twitter": {
+    "handle": "JJ_McCullough",
+    "refreshSeconds": 120,
+    "rssMirrors": [
+      "https://nitter.net",
+      "https://xcancel.com",
+      "https://nitter.poast.org"
+    ],
+    "userId": "30800681"
+  },
+  "youtube": {
+    "videoId": "ZelFrdivB2c",
+    "channelId": "UCiKE6mqbKmGGlNAtccn04MA",
+    "title": "CBC News BC — B.C. Votes 2026"
+  },
+  "projection": {
+    "_comment": "Unofficial call heuristic. A riding is 'projected' when ANY rule passes. frac = share of ballot boxes reported; needShare = share of estimated remaining votes the runner-up would need; margin = lead as % of counted votes.",
+    "minFracForNeedShare": 0.25,
+    "needShare": 0.8,
+    "rules": [
+      {
+        "minFrac": 0.5,
+        "minMargin": 8
+      },
+      {
+        "minFrac": 0.35,
+        "minMargin": 15
+      },
+      {
+        "minFrac": 0.85,
+        "minMargin": 3
+      }
+    ]
+  }
+}
