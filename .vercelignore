@@ -5,3 +5,6 @@ docs
 db
 .cache
 .github
+.agents
+.claude
+skills-lock.json
