@@ -390,6 +390,17 @@ No outlet had a 2026 election-night stream scheduled on YouTube as of Oct 25. Re
 
 ---
 
+## 10b. Stock market data (added 2026-10-25)
+
+| Source | Result | Verdict |
+|---|---|---|
+| Yahoo Finance `query1.finance.yahoo.com/v8/finance/chart`, `/v7/finance/spark`, `/v7/finance/quote` | **429 Too Many Requests** on the first request without a browser session cookie/crumb | Not used: fragile |
+| **CNBC** `quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=A\|B…&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1` | **[live]** 43 symbols in one call in ~230 ms: stocks, indexes (`.SPX`), futures (`@SP.1`), yields (`US10Y`), dollar (`.DXY`), commodities (`@CL.1`, `@GC.1`), crypto (`BTC.CB=`), with after-hours prices (`ExtendedMktQuote`) | Used, polled every 30 s by the scraper |
+| **CNBC** `ts-api.cnbc.com/harmony/app/charts/1D.json?symbol=…` | **[live]** minute bars for the last session (crypto: two days) | Used, every 5 min, downsampled |
+| Finnhub, Twelve Data, Alpha Vantage, Polygon free tiers | Need a key; free limits (25–800 calls/day, or delayed data) are too low for 43 symbols every 30 s | Not used |
+
+Election night: regular US trading ends at 4 pm ET; after-hours runs to 8 pm, and S&P/Nasdaq/Dow futures trade overnight (daily break 5–6 pm ET). Futures are the live market read while results come in.
+
 ## 11. Open-source inspiration
 
 - https://github.com/toogreen/midterms2026 — 2026 PWA polling NYT result JSON; clean data layer

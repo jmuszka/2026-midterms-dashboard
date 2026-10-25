@@ -26,6 +26,7 @@ Every window is an instance of a type with its own settings (the gear in its tit
 | Social | Election analysts (Bluesky), Donald Trump on Truth Social, analysts on X (needs `X_BEARER_TOKEN`) | `/api/social?list=` |
 | Prediction markets | Senate and House control on Kalshi, Polymarket and PredictIt, 48-hour history, both-chambers combo, race odds | `/api/markets` |
 | Google Trends | What the US is searching | trending RSS |
+| Stock market | Indexes, overnight futures, big tech, conglomerates, policy-sensitive stocks, yields, dollar, oil, gold, crypto: overview (headline tiles, heatmap, movers), tiles with sparklines, small-multiple charts, table; trading session per symbol; replays with the timeline | CNBC quotes (30 s) and intraday charts (5 min) |
 
 **Sharing:** the **Share** button copies a link whose `#l=` fragment carries the full layout and every window's settings. Your own layout is remembered in this browser.
 
@@ -35,6 +36,7 @@ Full research with URLs and verdicts: [`docs/RESEARCH.md`](docs/RESEARCH.md).
 
 - **Results and race calls:** CNN's results JSON (AP data) for every race, plus the official feeds from North Carolina, Virginia, Georgia, Colorado and Iowa, whose counts take over when they are ahead. **Calls are only shown when a source makes them.**
 - **Markets:** Kalshi, Polymarket and PredictIt public APIs, mapped to all 506 races by `scripts/build-markets.mjs`.
+- **Stocks:** CNBC's quote and chart services (no key), groups and symbols in `config/sources.json → stocks`.
 - **Races, candidates, ratings:** Wikipedia's 2026 election and ratings pages plus The Downballot's 2024 presidential results on 2026 lines, compiled by `scripts/build-races.mjs`.
 - **Maps:** Census TIGERweb 120th-Congress districts (Missouri uses its 2022 lines, because the Census file still holds the blocked HB1 map), us-atlas states and counties, built by `scripts/build-geo.mjs`.
 

@@ -38,9 +38,11 @@ function mergeRaces(into, add) {
 function merge(add) {
   const b = tl.bundle;
   mergeRaces(b.races, add.races);
-  for (const [k, m] of Object.entries(add.markets || {})) {
-    const into = (b.markets[k] ||= { t: [], v: [] });
-    m.t.forEach((t, i) => { if (!into.t.length || t > into.t[into.t.length - 1]) { into.t.push(t); into.v.push(m.v[i]); } });
+  for (const sec of ['markets', 'stocks', 'stockPrev']) {
+    for (const [k, m] of Object.entries(add[sec] || {})) {
+      const into = ((b[sec] ||= {})[k] ||= { t: [], v: [] });
+      m.t.forEach((t, i) => { if (!into.t.length || t > into.t[into.t.length - 1]) { into.t.push(t); into.v.push(m.v[i]); } });
+    }
   }
   const seenEv = new Set(b.events.map((e) => e.id));
   b.events.push(...(add.events || []).filter((e) => !seenEv.has(e.id)));
@@ -143,6 +145,41 @@ export function postsAt(list, ms) {
   const posts = p.filter((x) => x.t <= s).map((x) => x.post).sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0)).slice(0, 80);
   return { id: list, name: app.config.social[list]?.name, posts, errors: [], ranAt: new Date(ms).toISOString(), replay: true };
 }
+// Stock quotes at a moment, rebuilt from recorded prices (stock:SYM) and previous closes
+// (stockpc:SYM); intraday series = the recorded prices of the 24 hours before the moment.
+const typeOf = (s) => (s.startsWith('@') ? 'DERIVATIVE' : /^US\d+Y$/.test(s) ? 'BOND' : /\.CB=$/.test(s) ? 'CRYPTO' : s.startsWith('.') ? 'INDEX' : 'STOCK');
+export function sessionAt(symbol, ms) {
+  const et = new Date(new Date(ms).toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const day = et.getDay(), mins = et.getHours() * 60 + et.getMinutes(), type = typeOf(symbol);
+  if (type === 'CRYPTO') return 'open';
+  if (type === 'DERIVATIVE' || type === 'BOND') {
+    if (day === 6 || (day === 5 && mins >= 1020) || (day === 0 && mins < 1080)) return 'closed';
+    return mins >= 1020 && mins < 1080 ? 'closed' : 'open';
+  }
+  if (day === 0 || day === 6) return 'closed';
+  if (mins >= 570 && mins < 960) return 'open';
+  if (type === 'INDEX') return 'closed';
+  return mins >= 240 && mins < 570 ? 'pre' : mins >= 960 && mins < 1200 ? 'post' : 'closed';
+}
+export function stocksAt(ms) {
+  const st = tl.bundle?.stocks || {};
+  if (!Object.keys(st).length) return undefined; // nothing recorded (e.g. simulation): stay live
+  const s = Math.floor(ms / 1000), quotes = {}, series = {};
+  for (const [sym, m] of Object.entries(st)) {
+    const i = at(m.t, s);
+    if (i < 0) continue;
+    const pc = tl.bundle.stockPrev?.[sym]; const j = pc ? at(pc.t, s) : -1;
+    const price = m.v[i], prevClose = j >= 0 ? pc.v[j] : null;
+    const change = prevClose ? price - prevClose : null;
+    quotes[sym] = { symbol: sym, price, prevClose, change, changePct: prevClose ? (change / prevClose) * 100 : null, unit: /^US\d+Y$/.test(sym) ? '%' : '', state: sessionAt(sym, ms) };
+    const from = s - 24 * 3600;
+    const pts = [];
+    for (let k = 0; k <= i; k++) if (m.t[k] >= from) pts.push([m.t[k], m.v[k]]);
+    series[sym] = pts;
+  }
+  return { quotes, series, errors: [], replay: true, ranAt: new Date(ms).toISOString() };
+}
+
 // What a stream window should show at a moment (docs/SCRUBBER.md §6):
 //   undefined                      -> stay live (simulated night with no curated video for this stream)
 //   { kind: 'video', videoId, mode: 'vod',  pos }       seconds into an ended/archived video

@@ -68,6 +68,8 @@ Every 15 seconds the scraper calls `runPoll({ beat: true })` (`lib/poll.mjs`). E
 | `news` | 120 s | 21 RSS feeds and Google News queries | `kv` snapshot, `news_items` (new headlines) |
 | `social:<list>` | 90 s | Bluesky analysts, Truth Social (trumpstruth.org fallback), X | `kv` snapshot, `posts` (new posts) |
 | `trends` | 600 s | Google Trends trending RSS | `kv` snapshot |
+| `stocks` | 30 s | CNBC quote service: 43 indexes, futures, stocks, yields, commodities, crypto (incl. after-hours prices) | `kv` snapshot, `ticks` keyed `stock:<symbol>` (price, on change) and `stockpc:<symbol>` (previous close, when a new session starts) |
+| `stockcharts` | 300 s | CNBC 1-day charts, downsampled to 5-minute closes, last 24 h | `kv` snapshot |
 
 The cycle ends with a `heartbeat` row: time, host, version, and each task that ran with `ok` or its error. That row is what the site uses to show freshness, and its insert is the Realtime nudge that makes browsers refetch.
 
@@ -99,7 +101,7 @@ All in `public`, created by `db/schema.sql` (idempotent: `psql "$POSTGRES_URL_NO
 | `kv` | Latest snapshot per task, plus small state (last keyframe, market alert times, video metadata seen) |
 | `events` | Feed event |
 | `race_ticks` | Race whose counts, call or expected vote changed, per cycle |
-| `ticks` | Market price change (Democratic probability) per race or chamber |
+| `ticks` | Prediction-market price change (Democratic probability) per race or chamber; stock price (`stock:<symbol>`) and previous close (`stockpc:<symbol>`) changes |
 | `snapshots` | Full merged results every 5 minutes (rebuild/debug hedge) |
 | `news_items`, `posts` | Headline / social post, when first seen |
 | `stream_ticks` | Channel whose live video or status changed |

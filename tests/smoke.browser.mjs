@@ -81,6 +81,19 @@ await ev(`wm.workspace(4)`); await sleep(1500);
 check('House map draws 435 districts', await waitFor(`document.querySelectorAll('[data-win="map-2"] path.area').length === 435`), await ev(`document.querySelectorAll('[data-win="map-2"] path.area').length`));
 await shot('ws4.png');
 
+// workspace 5: stock market
+await ev(`wm.workspace(5)`); await sleep(1200);
+check('ws5 windows', (await visible()).split(',').sort().join(',') === 'stocks-1,stocks-2', await visible());
+check('stocks overview: 8 headline tiles with prices', await waitFor(`(() => { const t = [...document.querySelectorAll('[data-win="stocks-1"] .stk-hero .stk-tile .stk-price')]; return t.length === 8 && t.every(x => /[0-9]/.test(x.textContent)); })()`, 30000), await ev(`document.querySelectorAll('[data-win="stocks-1"] .stk-hero .stk-tile').length`));
+check('stocks overview: heatmap of 27 stocks and the movers lists', await ev(`document.querySelectorAll('[data-win="stocks-1"] .stk-heat .cell').length === 27 && document.querySelectorAll('[data-win="stocks-1"] .stk-movers li').length === 10`));
+check('every change carries an arrow and a sign (not colour alone)', await ev(`[...document.querySelectorAll('[data-win="stocks-1"] .stk-chg')].every(x => /[▲▼■]/.test(x.textContent))`));
+check('futures as small multiples: 4 charts with lines', await waitFor(`document.querySelectorAll('[data-win="stocks-2"] .stk-mult figure').length === 4 && [...document.querySelectorAll('[data-win="stocks-2"] .stk-mult path')].some(p => (p.getAttribute('d') || '').length > 20)`, 30000));
+for (const [mode, sel, n] of [['table', '.stk-table tbody tr', 4], ['tiles', '.stk-grid .stk-tile', 4], ['heatmap', '.stk-heat .cell', 4]]) {
+  await ev(`document.querySelector('[data-win="stocks-2"] [data-display="${mode}"]').click()`); await sleep(400);
+  check(`stocks ${mode} layout`, await ev(`document.querySelectorAll('[data-win="stocks-2"] ${sel}').length === ${n}`), await ev(`document.querySelectorAll('[data-win="stocks-2"] ${sel}').length`));
+}
+await shot('ws5-stocks.png');
+
 // settings change via popover: switch map-2 to ratings mode
 await ev(`document.querySelector('[data-win="map-2"] .gear').click()`); await sleep(300);
 await ev(`(() => { const s = document.querySelector('#popover select[data-key="mode"]'); s.value = JSON.stringify('rating'); s.dispatchEvent(new Event('change', { bubbles: true })); })()`); await sleep(800);

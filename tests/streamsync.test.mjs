@@ -55,3 +55,15 @@ test('streamAt covers archive, ended, live-with-DVR, no-DVR and offline', () => 
   assert.equal(streamAt('nbc', now - HOUR), undefined);
   assert.equal(streamAt('cbs', Date.parse('2026-11-04T01:00:00Z')).videoId, 'ARCH0000001');
 });
+
+test('stocksAt rebuilds quotes and change from recorded prices', async () => {
+  const { stocksAt } = await import('../public/js/timeline.js');
+  tl.bundle = { stocks: { AAPL: { t: [100, 200, 300], v: [340, 350, 345] } }, stockPrev: { AAPL: { t: [100], v: [340] } } };
+  const r = stocksAt(250 * 1000);
+  assert.equal(r.quotes.AAPL.price, 350);
+  assert.ok(Math.abs(r.quotes.AAPL.changePct - (10 / 340) * 100) < 1e-9);
+  assert.deepEqual(r.series.AAPL, [[100, 340], [200, 350]]);
+  assert.equal(stocksAt(50 * 1000).quotes.AAPL, undefined, 'nothing before the first recorded price');
+  tl.bundle = { stocks: {} };
+  assert.equal(stocksAt(250 * 1000), undefined, 'no recording: stay live');
+});

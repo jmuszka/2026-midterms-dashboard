@@ -33,7 +33,7 @@ public/js/core.js                 helpers, data hub (polls only what open window
 public/js/seats.js                seat tallies and hemicycle geometry shared by balance/chamber/map
 public/js/reader.js               news reader window (Readability via /api/article)
 public/js/clock.js, timeline.js, transport.js   the scrubber: replay clock, bundle model (state at any moment), the strip
-public/js/views/*.js              window types: balance, map, chamber, feed, race, races, timeline, stream, news, social, markets, trends
+public/js/views/*.js              window types: balance, map, chamber, feed, race, races, timeline, stream, news, social, markets, trends, stocks
 public/data/                      districts-2026.json, states-10m.json, counties-10m.json (TopoJSON)
 lib/routes.mjs                    all /api routes and their CDN freshness
 lib/poll.mjs                      tasks, runPoll() (scheduler path), snapshot() (read path), events, ticks
@@ -46,6 +46,7 @@ lib/sources/markets.mjs           Kalshi, Polymarket, PredictIt prices for confi
 lib/sources/social.mjs            Bluesky, Truth Social (+ trumpstruth.org RSS fallback), X (token-gated)
 lib/sources/streams.mjs           YouTube live-video resolver, Kick, Twitch
 lib/sources/news.mjs              RSS lanes + race-call headline tagging, Google Trends
+lib/sources/stocks.mjs            CNBC quotes (batched) and 1-day charts; trading session by asset type and US market hours
 lib/article.mjs, lib/rss.mjs      reader extraction (kept from BC), RSS parsing
 config/races.json                 GENERATED manifest (scripts/build-races.mjs); corrections go in config/race-overrides.json
 config/markets.json               GENERATED market ids (scripts/build-markets.mjs)
@@ -73,6 +74,7 @@ Key decisions:
 - **Markets**: Kalshi `tickers=` batches of 100, Polymarket Gamma `id=` batches of 50, PredictIt one blob (needs a browser UA). Prices are renormalised per venue so the parties shown sum to 1. Combo market keys are `D/D`, `R/D`, `R/R`, `D/R` (Senate/House).
 - **Streams**: never use YouTube `search.list` (100 calls/day). The resolver reads `/channel/<id>/live` only up to `videoDetails` (~0.8 MB), takes the canonical video id, and treats `isLive && !isUpcoming` as live. Channels leave stale "upcoming" placeholders (WaPo's August event): anything scheduled more than 12 h ago counts as offline. Twitch embeds need `parent=<hostname>`.
 - **Social**: X free paths are dead; X lists only run with `X_BEARER_TOKEN` and keep `since_id`. Bluesky handles were checked for activity: Nate Cohn, Wasserman, Nate Silver, Jessica Taylor and Amy Walter are effectively inactive there, and `ap-news.bsky.social` is a parody. Truth Social's Mastodon API answers unauthenticated JSON only with a full browser UA and is sometimes challenged; the trumpstruth.org RSS fallback lags a few hours and has no avatars.
+- **Stocks**: Yahoo Finance's chart/spark/quote endpoints return 429 to clients without a session cookie (Oct 25); CNBC's `quote.cnbc.com/quote-html-webservice/restQuote` (batched with `|`, `exthrs=1` for after-hours) and `ts-api.cnbc.com/harmony/app/charts/1D.json` work unauthenticated. Grey area like CNN's JSON: the feed behind cnbc.com, polled every 30 s by the one scraper, attributed in the window. CNBC's market-status field says "open" on weekends, so `session()` computes it from US market hours. Up/down colours `#2FA88A`/`#CF7A26` passed the dataviz validator on both dark surfaces and always come with ▲/▼ and a sign; party colours never appear in the stock window.
 - **News**: checked feeds are in `config/sources.json`; dead ones are listed in its `_dead` note. Race-call tagging requires a past-tense outcome verb plus an office word and rejects hedged headlines (unit-checked).
 - **Geometry**: Missouri's Census 120th file encodes the blocked HB1 map, so `build-geo.mjs` takes Missouri from the 119th layer and verifies the two differ. Rings are rewound for d3-geo (the BC map once rendered as a globe-filling blob). `ZZ` water placeholders are dropped.
 - **Manifest**: `build-races.mjs` must produce 35 / 435 / 36 and every state's seat count or it exits non-zero. Downballot and Wikipedia disagree on some redistricted incumbents (TX, UT, FL-25); the script warns and keeps Wikipedia.

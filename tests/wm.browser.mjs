@@ -109,10 +109,10 @@ await key('1', 'alt');
 check('Alt+1 back', JSON.parse(await S()).active === 1);
 await mouse('mouseMoved', 300, 700, 'none'); await sleep(200);
 const f = JSON.parse(await S()).focus;
-await key('5', 'alt', 'shift');
+await key('6', 'alt', 'shift');
 let st = JSON.parse(await S());
-check(`Alt+Shift+5 moves ${f} to ws5 and follows`, st.active === 5 && (await visibleWins()) === f, JSON.stringify(st));
-check('bar lists workspaces 1-5 and special', (await ev(`[...document.querySelectorAll('#workspaces button')].map(b=>b.textContent).join(',')`)) === '1,2,3,4,5,S', await ev(`[...document.querySelectorAll('#workspaces button')].map(b=>b.textContent).join(',')`));
+check(`Alt+Shift+6 moves ${f} to ws6 and follows`, st.active === 6 && (await visibleWins()) === f, JSON.stringify(st));
+check('bar lists workspaces 1-6 and special', (await ev(`[...document.querySelectorAll('#workspaces button')].map(b=>b.textContent).join(',')`)) === '1,2,3,4,5,6,S', await ev(`[...document.querySelectorAll('#workspaces button')].map(b=>b.textContent).join(',')`));
 await key('1', 'alt');
 
 // 8. float, fullscreen, close, launcher
@@ -156,7 +156,7 @@ check('reset restores default', (await visibleWins()) === 'balance-1,map-1,strea
 
 // 11. phone width: panels stack, no horizontal scroll
 await send('Emulation.setDeviceMetricsOverride', { width: 420, height: 900, deviceScaleFactor: 1, mobile: false }); await sleep(800);
-check('phone: panels stack', await ev(`(() => { const t = [...document.querySelectorAll('.win:not(.closed)')].map(w => w.getBoundingClientRect().top); return t.length === 16 && new Set(t.map(Math.round)).size === 16; })()`));
+check('phone: panels stack', await ev(`(() => { const t = [...document.querySelectorAll('.win:not(.closed)')].map(w => w.getBoundingClientRect().top); return t.length === 18 && new Set(t.map(Math.round)).size === 18; })()`));
 check('phone: no horizontal scroll', await ev(`document.documentElement.scrollWidth <= 420`));
 await shot('wm-phone.png');
 console.log('errors:', errs.length ? errs : 'none');

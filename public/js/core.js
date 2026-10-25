@@ -53,6 +53,7 @@ const KEYS = {
   streams: { url: () => '/api/streams', every: 90 },
   news: { url: () => '/api/news', every: 90 },
   trends: { url: () => '/api/trends', every: 600 },
+  stocks: { url: () => '/api/stocks', every: 30 },
 };
 const simQ = (sep = '?') => (app.sim ? `${sep}sim=1${app.simAt ? `&simAt=${app.simAt}` : ''}` : '');
 const subs = new Map(); // key -> Set(fn)

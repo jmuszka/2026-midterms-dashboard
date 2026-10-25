@@ -17,11 +17,12 @@ import news from './views/news.js';
 import social from './views/social.js';
 import markets from './views/markets.js';
 import trends from './views/trends.js';
+import stocks from './views/stocks.js';
 
 async function main() {
   await loadApp();
   if (app.sim) document.body.classList.add('sim'); // before the WM measures the desktop: the banner takes height
-  L.registerTypes([balance, map, chamber, feed, race, races, timeline, stream, news, social, markets, trends]);
+  L.registerTypes([balance, map, chamber, feed, race, races, timeline, stream, news, social, markets, trends, stocks]);
   const presets = app.config.presets;
   const wm = createWM({
     desk: $('#desktop'),

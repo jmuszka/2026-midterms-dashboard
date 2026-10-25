@@ -20,6 +20,7 @@ function source(key) {
   if (key === 'results') return T.resultsAt(t);
   if (key === 'markets') return T.marketsAt(t);
   if (key === 'news') return T.newsAt(t);
+  if (key === 'stocks') return T.stocksAt(t);
   if (key.startsWith('social:')) return T.postsAt(key.slice(7), t);
   return undefined; // streams, trends: stay live
 }

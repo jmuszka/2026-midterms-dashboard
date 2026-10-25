@@ -1,140 +1,838 @@
 {
   "_comment": "Every external source the dashboard reads. Verified 2026-10-25; see docs/RESEARCH.md for verdicts. Intervals are seconds.",
-
   "results": {
     "_comment": "Vote-count sources merged per race. Calls come only from sources with called=true (CNN/AP). 'slug' values marked TBD must be filled in on election day (AGENTS.md runbook).",
-    "cnn": { "enabled": true, "base": "https://politics.api.cnn.io/results", "year": 2026, "contests": ["SG", "S2G", "HG", "GG"], "interval": 60, "attribution": "CNN / AP" },
+    "cnn": {
+      "enabled": true,
+      "base": "https://politics.api.cnn.io/results",
+      "year": 2026,
+      "contests": [
+        "SG",
+        "S2G",
+        "HG",
+        "GG"
+      ],
+      "interval": 60,
+      "attribution": "CNN / AP"
+    },
     "states": [
-      { "id": "nc", "state": "NC", "type": "ncsbe", "enabled": true, "url": "https://er.ncsbe.gov/enr/20261103/data/results_0.txt", "attribution": "NC State Board of Elections" },
-      { "id": "va", "state": "VA", "type": "enhancedvoting", "enabled": true, "base": "https://enr.elections.virginia.gov/results/public/api/elections/Virginia", "slug": "2026-November-General", "attribution": "Virginia Department of Elections" },
-      { "id": "ga", "state": "GA", "type": "enhancedvoting", "enabled": true, "base": "https://results.sos.ga.gov/results/public/api/elections/Georgia", "slug": "2026NovGen", "attribution": "Georgia Secretary of State", "_note": "slug unconfirmed until GA publishes it; adapter fails soft on 404" },
-      { "id": "co", "state": "CO", "type": "clarity", "enabled": true, "base": "https://results.enr.clarityelections.com/CO", "attribution": "Colorado Secretary of State" },
-      { "id": "ia", "state": "IA", "type": "clarity", "enabled": true, "base": "https://results.enr.clarityelections.com/IA", "attribution": "Iowa Secretary of State" }
+      {
+        "id": "nc",
+        "state": "NC",
+        "type": "ncsbe",
+        "enabled": true,
+        "url": "https://er.ncsbe.gov/enr/20261103/data/results_0.txt",
+        "attribution": "NC State Board of Elections"
+      },
+      {
+        "id": "va",
+        "state": "VA",
+        "type": "enhancedvoting",
+        "enabled": true,
+        "base": "https://enr.elections.virginia.gov/results/public/api/elections/Virginia",
+        "slug": "2026-November-General",
+        "attribution": "Virginia Department of Elections"
+      },
+      {
+        "id": "ga",
+        "state": "GA",
+        "type": "enhancedvoting",
+        "enabled": true,
+        "base": "https://results.sos.ga.gov/results/public/api/elections/Georgia",
+        "slug": "2026NovGen",
+        "attribution": "Georgia Secretary of State",
+        "_note": "slug unconfirmed until GA publishes it; adapter fails soft on 404"
+      },
+      {
+        "id": "co",
+        "state": "CO",
+        "type": "clarity",
+        "enabled": true,
+        "base": "https://results.enr.clarityelections.com/CO",
+        "attribution": "Colorado Secretary of State"
+      },
+      {
+        "id": "ia",
+        "state": "IA",
+        "type": "clarity",
+        "enabled": true,
+        "base": "https://results.enr.clarityelections.com/IA",
+        "attribution": "Iowa Secretary of State"
+      }
     ],
     "interval": 60
   },
-
-  "markets": { "kalshi": "https://api.elections.kalshi.com/trade-api/v2", "polymarket": "https://gamma-api.polymarket.com", "predictit": "https://www.predictit.org/api/marketdata/all/", "interval": 60 },
-
+  "markets": {
+    "kalshi": "https://api.elections.kalshi.com/trade-api/v2",
+    "polymarket": "https://gamma-api.polymarket.com",
+    "predictit": "https://www.predictit.org/api/marketdata/all/",
+    "interval": 60
+  },
   "balance": {
     "_comment": "Seats NOT up in 2026, and the current composition for net-change maths. Senate: 53 R, 45 D, 2 I (caucus D); 35 seats up (22 R, 13 D). Governors not up: 14 states.",
-    "S": { "total": 100, "majority": 51, "tieBreak": "GOP", "holdover": { "DEM": 34, "GOP": 31 }, "current": { "DEM": 47, "GOP": 53 } },
-    "H": { "total": 435, "majority": 218, "current": { "DEM": 214, "GOP": 218, "IND": 1, "vacant": 2 } },
-    "G": { "total": 50, "holdover": { "DEM": 6, "GOP": 8 }, "holdoverStates": { "DE": "DEM", "KY": "DEM", "NJ": "DEM", "NC": "DEM", "VA": "DEM", "WA": "DEM", "IN": "GOP", "LA": "GOP", "MS": "GOP", "MO": "GOP", "MT": "GOP", "ND": "GOP", "UT": "GOP", "WV": "GOP" } }
+    "S": {
+      "total": 100,
+      "majority": 51,
+      "tieBreak": "GOP",
+      "holdover": {
+        "DEM": 34,
+        "GOP": 31
+      },
+      "current": {
+        "DEM": 47,
+        "GOP": 53
+      }
+    },
+    "H": {
+      "total": 435,
+      "majority": 218,
+      "current": {
+        "DEM": 214,
+        "GOP": 218,
+        "IND": 1,
+        "vacant": 2
+      }
+    },
+    "G": {
+      "total": 50,
+      "holdover": {
+        "DEM": 6,
+        "GOP": 8
+      },
+      "holdoverStates": {
+        "DE": "DEM",
+        "KY": "DEM",
+        "NJ": "DEM",
+        "NC": "DEM",
+        "VA": "DEM",
+        "WA": "DEM",
+        "IN": "GOP",
+        "LA": "GOP",
+        "MS": "GOP",
+        "MO": "GOP",
+        "MT": "GOP",
+        "ND": "GOP",
+        "UT": "GOP",
+        "WV": "GOP"
+      }
+    }
   },
-
   "streams": {
-    "_comment": "platform: youtube (channel = UC… id), twitch (channel = login), kick (channel = slug). 'tag' groups the picker. '24x7' channels have a single always-on stream, so the channel embed works; others need the live-ID resolver.",
+    "_comment": "platform: youtube (channel = UC\u2026 id), twitch (channel = login), kick (channel = slug). 'tag' groups the picker. '24x7' channels have a single always-on stream, so the channel embed works; others need the live-ID resolver.",
     "interval": 120,
     "list": [
-      { "id": "cspan", "name": "C-SPAN", "platform": "youtube", "channel": "UCb--64Gl51jIEVE-GLDAVTg", "tag": "network" },
-      { "id": "nbc", "name": "NBC News NOW", "platform": "youtube", "channel": "UCeY0bbntWzzVIaj2z3QigXg", "tag": "network", "24x7": true },
-      { "id": "abc", "name": "ABC News Live", "platform": "youtube", "channel": "UCBi2mrWuNuyYy4gbM6fU18Q", "tag": "network", "24x7": true },
-      { "id": "cbs", "name": "CBS News", "platform": "youtube", "channel": "UC8p1vwvWtl6T73JiExfWs1g", "tag": "network" },
-      { "id": "pbs", "name": "PBS NewsHour", "platform": "youtube", "channel": "UC6ZFN9Tx6xh-skXCuRHCDpQ", "tag": "network" },
-      { "id": "hill", "name": "The Hill", "platform": "youtube", "channel": "UCPWXiRWZ29zrxPFIQT7eHSA", "tag": "network" },
-      { "id": "ddhq", "name": "Decision Desk HQ", "platform": "youtube", "channel": "UC0zIez_iBFIOvJumpyKm7yA", "tag": "network" },
-      { "id": "reuters", "name": "Reuters", "platform": "youtube", "channel": "UChqUTb7kYRX8-EiaN3XFrSQ", "tag": "network" },
-      { "id": "wapo", "name": "Washington Post", "platform": "youtube", "channel": "UCHd62-u_v4DvJ8TCFtpi4GA", "tag": "network" },
-      { "id": "usatoday", "name": "USA Today", "platform": "youtube", "channel": "UCP6HGa63sBC7-KHtkme-p-g", "tag": "network" },
-      { "id": "bloomberg", "name": "Bloomberg TV", "platform": "youtube", "channel": "UCdK2BueKxC9VxXh7e1Ne4oQ", "tag": "network" },
-      { "id": "newsmax", "name": "Newsmax", "platform": "youtube", "channel": "UCx6h-dWzJ5NpAlja1YsApdg", "tag": "network" },
-      { "id": "cnnheadlines", "name": "CNN Headlines (loop)", "platform": "youtube", "channel": "UCupvZG-5ko_eiXAupbDfxWw", "tag": "network" },
-      { "id": "msnow", "name": "MS NOW (side streams)", "platform": "youtube", "channel": "UCaXkIU1QidjPwiAYu6GcHjg", "tag": "network" },
-      { "id": "sky", "name": "Sky News", "platform": "youtube", "channel": "UCoMdktPbSTixAyNGwb-UYkQ", "tag": "international" },
-      { "id": "aje", "name": "Al Jazeera English", "platform": "youtube", "channel": "UCNye-wNBqNL5ZzHSJj3l8Bg", "tag": "international", "24x7": true },
-      { "id": "dw", "name": "DW News", "platform": "youtube", "channel": "UCknLrEdhRCp1aegoMqRaCZg", "tag": "international", "24x7": true },
-      { "id": "f24", "name": "France 24 English", "platform": "youtube", "channel": "UCQfwfsi5VrQ8yKZ-UWmAEFg", "tag": "international", "24x7": true },
-      { "id": "cbc", "name": "CBC News", "platform": "youtube", "channel": "UCuFFtHWoLl5fauMMD5Ww2jA", "tag": "international" },
-      { "id": "global", "name": "Global News", "platform": "youtube", "channel": "UChLtXXpo4Ge1ReTEboVvTDg", "tag": "international" },
-      { "id": "breakingpoints", "name": "Breaking Points", "platform": "youtube", "channel": "UCDRIjKy6eZOvKtOELtTdeUA", "tag": "independent" },
-      { "id": "dailywire", "name": "Daily Wire", "platform": "youtube", "channel": "UCaeO5vkdj5xOQHp4UmIN6dw", "tag": "independent" },
-      { "id": "meidas", "name": "MeidasTouch", "platform": "youtube", "channel": "UC9r9HYFxEQOBXSopFS61ZWg", "tag": "independent" },
-      { "id": "pakman", "name": "David Pakman", "platform": "youtube", "channel": "UCvixJtaXuNdMPUGdOPcY8Ag", "tag": "independent" },
-      { "id": "btc", "name": "Brian Tyler Cohen", "platform": "youtube", "channel": "UCQANb2YPwAtK-IQJrLaaUFw", "tag": "independent" },
-      { "id": "timcast", "name": "Timcast IRL", "platform": "youtube", "channel": "UCLwNTXWEjVd2qIHLcXxQWxA", "tag": "independent" },
-      { "id": "majority", "name": "Majority Report", "platform": "youtube", "channel": "UC-3jIAlnQmbbVMV6gR7K8aQ", "tag": "independent" },
-      { "id": "zeteo", "name": "Zeteo", "platform": "youtube", "channel": "UCVG72F2Q5yCmLQfctNK6M2A", "tag": "independent" },
-      { "id": "hasan", "name": "HasanAbi (Twitch)", "platform": "twitch", "channel": "hasanabi", "tag": "independent" },
-      { "id": "wplg", "name": "WPLG Local 10 Miami", "platform": "youtube", "channel": "UCgVZ0mrM3liHNhRYC5Mchgg", "tag": "local", "24x7": true },
-      { "id": "fox5atl", "name": "FOX 5 Atlanta", "platform": "youtube", "channel": "UCjHWv2DU5-HLpogAAr386DQ", "tag": "local", "24x7": true },
-      { "id": "abc7chi", "name": "ABC7 Chicago", "platform": "youtube", "channel": "UC_vFLohxs5PkAxlk7Y6jEtw", "tag": "local" },
-      { "id": "wcco", "name": "WCCO Minneapolis", "platform": "youtube", "channel": "UCry2gCVdntv6r661sKUiKXw", "tag": "local" },
-      { "id": "11alive", "name": "11Alive Atlanta", "platform": "youtube", "channel": "UCzF4Ryn8TKn64md77gS5Q5Q", "tag": "local" }
+      {
+        "id": "cspan",
+        "name": "C-SPAN",
+        "platform": "youtube",
+        "channel": "UCb--64Gl51jIEVE-GLDAVTg",
+        "tag": "network"
+      },
+      {
+        "id": "nbc",
+        "name": "NBC News NOW",
+        "platform": "youtube",
+        "channel": "UCeY0bbntWzzVIaj2z3QigXg",
+        "tag": "network",
+        "24x7": true
+      },
+      {
+        "id": "abc",
+        "name": "ABC News Live",
+        "platform": "youtube",
+        "channel": "UCBi2mrWuNuyYy4gbM6fU18Q",
+        "tag": "network",
+        "24x7": true
+      },
+      {
+        "id": "cbs",
+        "name": "CBS News",
+        "platform": "youtube",
+        "channel": "UC8p1vwvWtl6T73JiExfWs1g",
+        "tag": "network"
+      },
+      {
+        "id": "pbs",
+        "name": "PBS NewsHour",
+        "platform": "youtube",
+        "channel": "UC6ZFN9Tx6xh-skXCuRHCDpQ",
+        "tag": "network"
+      },
+      {
+        "id": "hill",
+        "name": "The Hill",
+        "platform": "youtube",
+        "channel": "UCPWXiRWZ29zrxPFIQT7eHSA",
+        "tag": "network"
+      },
+      {
+        "id": "ddhq",
+        "name": "Decision Desk HQ",
+        "platform": "youtube",
+        "channel": "UC0zIez_iBFIOvJumpyKm7yA",
+        "tag": "network"
+      },
+      {
+        "id": "reuters",
+        "name": "Reuters",
+        "platform": "youtube",
+        "channel": "UChqUTb7kYRX8-EiaN3XFrSQ",
+        "tag": "network"
+      },
+      {
+        "id": "wapo",
+        "name": "Washington Post",
+        "platform": "youtube",
+        "channel": "UCHd62-u_v4DvJ8TCFtpi4GA",
+        "tag": "network"
+      },
+      {
+        "id": "usatoday",
+        "name": "USA Today",
+        "platform": "youtube",
+        "channel": "UCP6HGa63sBC7-KHtkme-p-g",
+        "tag": "network"
+      },
+      {
+        "id": "bloomberg",
+        "name": "Bloomberg TV",
+        "platform": "youtube",
+        "channel": "UCdK2BueKxC9VxXh7e1Ne4oQ",
+        "tag": "network"
+      },
+      {
+        "id": "newsmax",
+        "name": "Newsmax",
+        "platform": "youtube",
+        "channel": "UCx6h-dWzJ5NpAlja1YsApdg",
+        "tag": "network"
+      },
+      {
+        "id": "cnnheadlines",
+        "name": "CNN Headlines (loop)",
+        "platform": "youtube",
+        "channel": "UCupvZG-5ko_eiXAupbDfxWw",
+        "tag": "network"
+      },
+      {
+        "id": "msnow",
+        "name": "MS NOW (side streams)",
+        "platform": "youtube",
+        "channel": "UCaXkIU1QidjPwiAYu6GcHjg",
+        "tag": "network"
+      },
+      {
+        "id": "sky",
+        "name": "Sky News",
+        "platform": "youtube",
+        "channel": "UCoMdktPbSTixAyNGwb-UYkQ",
+        "tag": "international"
+      },
+      {
+        "id": "aje",
+        "name": "Al Jazeera English",
+        "platform": "youtube",
+        "channel": "UCNye-wNBqNL5ZzHSJj3l8Bg",
+        "tag": "international",
+        "24x7": true
+      },
+      {
+        "id": "dw",
+        "name": "DW News",
+        "platform": "youtube",
+        "channel": "UCknLrEdhRCp1aegoMqRaCZg",
+        "tag": "international",
+        "24x7": true
+      },
+      {
+        "id": "f24",
+        "name": "France 24 English",
+        "platform": "youtube",
+        "channel": "UCQfwfsi5VrQ8yKZ-UWmAEFg",
+        "tag": "international",
+        "24x7": true
+      },
+      {
+        "id": "cbc",
+        "name": "CBC News",
+        "platform": "youtube",
+        "channel": "UCuFFtHWoLl5fauMMD5Ww2jA",
+        "tag": "international"
+      },
+      {
+        "id": "global",
+        "name": "Global News",
+        "platform": "youtube",
+        "channel": "UChLtXXpo4Ge1ReTEboVvTDg",
+        "tag": "international"
+      },
+      {
+        "id": "breakingpoints",
+        "name": "Breaking Points",
+        "platform": "youtube",
+        "channel": "UCDRIjKy6eZOvKtOELtTdeUA",
+        "tag": "independent"
+      },
+      {
+        "id": "dailywire",
+        "name": "Daily Wire",
+        "platform": "youtube",
+        "channel": "UCaeO5vkdj5xOQHp4UmIN6dw",
+        "tag": "independent"
+      },
+      {
+        "id": "meidas",
+        "name": "MeidasTouch",
+        "platform": "youtube",
+        "channel": "UC9r9HYFxEQOBXSopFS61ZWg",
+        "tag": "independent"
+      },
+      {
+        "id": "pakman",
+        "name": "David Pakman",
+        "platform": "youtube",
+        "channel": "UCvixJtaXuNdMPUGdOPcY8Ag",
+        "tag": "independent"
+      },
+      {
+        "id": "btc",
+        "name": "Brian Tyler Cohen",
+        "platform": "youtube",
+        "channel": "UCQANb2YPwAtK-IQJrLaaUFw",
+        "tag": "independent"
+      },
+      {
+        "id": "timcast",
+        "name": "Timcast IRL",
+        "platform": "youtube",
+        "channel": "UCLwNTXWEjVd2qIHLcXxQWxA",
+        "tag": "independent"
+      },
+      {
+        "id": "majority",
+        "name": "Majority Report",
+        "platform": "youtube",
+        "channel": "UC-3jIAlnQmbbVMV6gR7K8aQ",
+        "tag": "independent"
+      },
+      {
+        "id": "zeteo",
+        "name": "Zeteo",
+        "platform": "youtube",
+        "channel": "UCVG72F2Q5yCmLQfctNK6M2A",
+        "tag": "independent"
+      },
+      {
+        "id": "hasan",
+        "name": "HasanAbi (Twitch)",
+        "platform": "twitch",
+        "channel": "hasanabi",
+        "tag": "independent"
+      },
+      {
+        "id": "wplg",
+        "name": "WPLG Local 10 Miami",
+        "platform": "youtube",
+        "channel": "UCgVZ0mrM3liHNhRYC5Mchgg",
+        "tag": "local",
+        "24x7": true
+      },
+      {
+        "id": "fox5atl",
+        "name": "FOX 5 Atlanta",
+        "platform": "youtube",
+        "channel": "UCjHWv2DU5-HLpogAAr386DQ",
+        "tag": "local",
+        "24x7": true
+      },
+      {
+        "id": "abc7chi",
+        "name": "ABC7 Chicago",
+        "platform": "youtube",
+        "channel": "UC_vFLohxs5PkAxlk7Y6jEtw",
+        "tag": "local"
+      },
+      {
+        "id": "wcco",
+        "name": "WCCO Minneapolis",
+        "platform": "youtube",
+        "channel": "UCry2gCVdntv6r661sKUiKXw",
+        "tag": "local"
+      },
+      {
+        "id": "11alive",
+        "name": "11Alive Atlanta",
+        "platform": "youtube",
+        "channel": "UCzF4Ryn8TKn64md77gS5Q5Q",
+        "tag": "local"
+      }
     ]
   },
-
   "news": {
     "interval": 120,
     "lanes": {
-      "national": ["gnews-midterms", "gnews-senate", "gnews-house", "gnews-governor", "nyt", "politico", "npr", "pbs", "cbs", "nbc", "abc", "fox", "guardian", "hill"],
-      "analysis": ["silver", "gem", "downballot", "ddhq", "bolts"],
-      "states": ["gnews-battleground", "nevind"]
+      "national": [
+        "gnews-midterms",
+        "gnews-senate",
+        "gnews-house",
+        "gnews-governor",
+        "nyt",
+        "politico",
+        "npr",
+        "pbs",
+        "cbs",
+        "nbc",
+        "abc",
+        "fox",
+        "guardian",
+        "hill"
+      ],
+      "analysis": [
+        "silver",
+        "gem",
+        "downballot",
+        "ddhq",
+        "bolts"
+      ],
+      "states": [
+        "gnews-battleground",
+        "nevind"
+      ]
     },
     "feeds": [
-      { "id": "gnews-midterms", "name": "Google News", "url": "https://news.google.com/rss/search?q=%22midterm+elections%22+OR+%22midterms%22+when:2d&hl=en-US&gl=US&ceid=US:en" },
-      { "id": "gnews-senate", "name": "Google News", "url": "https://news.google.com/rss/search?q=%22Senate+race%22+2026+when:2d&hl=en-US&gl=US&ceid=US:en" },
-      { "id": "gnews-house", "name": "Google News", "url": "https://news.google.com/rss/search?q=%22House+race%22+OR+%22congressional+district%22+2026+when:2d&hl=en-US&gl=US&ceid=US:en" },
-      { "id": "gnews-governor", "name": "Google News", "url": "https://news.google.com/rss/search?q=%22governor%27s+race%22+OR+%22race+for+governor%22+2026+when:2d&hl=en-US&gl=US&ceid=US:en" },
-      { "id": "gnews-battleground", "name": "Google News", "url": "https://news.google.com/rss/search?q=election+(Texas+OR+Maine+OR+Michigan+OR+Ohio+OR+Alaska+OR+Iowa+OR+Kansas+OR+Georgia+OR+Nevada+OR+Wisconsin)+Senate+OR+governor+when:1d&hl=en-US&gl=US&ceid=US:en" },
-      { "id": "nyt", "name": "New York Times", "url": "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml" },
-      { "id": "politico", "name": "Politico", "url": "https://rss.politico.com/politics-news.xml" },
-      { "id": "npr", "name": "NPR", "url": "https://feeds.npr.org/1014/rss.xml" },
-      { "id": "pbs", "name": "PBS NewsHour", "url": "https://www.pbs.org/newshour/feeds/rss/politics" },
-      { "id": "cbs", "name": "CBS News", "url": "https://www.cbsnews.com/latest/rss/politics" },
-      { "id": "nbc", "name": "NBC News", "url": "https://feeds.nbcnews.com/nbcnews/public/politics" },
-      { "id": "abc", "name": "ABC News", "url": "https://abcnews.go.com/abcnews/politicsheadlines" },
-      { "id": "fox", "name": "Fox News", "url": "https://moxie.foxnews.com/google-publisher/politics.xml" },
-      { "id": "guardian", "name": "The Guardian", "url": "https://www.theguardian.com/us-news/us-politics/rss" },
-      { "id": "hill", "name": "The Hill", "url": "https://thehill.com/homenews/campaign/feed/" },
-      { "id": "silver", "name": "Silver Bulletin", "url": "https://www.natesilver.net/feed" },
-      { "id": "gem", "name": "Strength In Numbers", "url": "https://www.gelliottmorris.com/feed" },
-      { "id": "downballot", "name": "The Downballot", "url": "https://www.the-downballot.com/feed" },
-      { "id": "ddhq", "name": "Decision Desk HQ", "url": "https://decisiondeskhq.substack.com/feed" },
-      { "id": "bolts", "name": "Bolts", "url": "https://boltsmag.org/feed/" },
-      { "id": "nevind", "name": "Nevada Independent", "url": "https://thenevadaindependent.com/feed" }
+      {
+        "id": "gnews-midterms",
+        "name": "Google News",
+        "url": "https://news.google.com/rss/search?q=%22midterm+elections%22+OR+%22midterms%22+when:2d&hl=en-US&gl=US&ceid=US:en"
+      },
+      {
+        "id": "gnews-senate",
+        "name": "Google News",
+        "url": "https://news.google.com/rss/search?q=%22Senate+race%22+2026+when:2d&hl=en-US&gl=US&ceid=US:en"
+      },
+      {
+        "id": "gnews-house",
+        "name": "Google News",
+        "url": "https://news.google.com/rss/search?q=%22House+race%22+OR+%22congressional+district%22+2026+when:2d&hl=en-US&gl=US&ceid=US:en"
+      },
+      {
+        "id": "gnews-governor",
+        "name": "Google News",
+        "url": "https://news.google.com/rss/search?q=%22governor%27s+race%22+OR+%22race+for+governor%22+2026+when:2d&hl=en-US&gl=US&ceid=US:en"
+      },
+      {
+        "id": "gnews-battleground",
+        "name": "Google News",
+        "url": "https://news.google.com/rss/search?q=election+(Texas+OR+Maine+OR+Michigan+OR+Ohio+OR+Alaska+OR+Iowa+OR+Kansas+OR+Georgia+OR+Nevada+OR+Wisconsin)+Senate+OR+governor+when:1d&hl=en-US&gl=US&ceid=US:en"
+      },
+      {
+        "id": "nyt",
+        "name": "New York Times",
+        "url": "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"
+      },
+      {
+        "id": "politico",
+        "name": "Politico",
+        "url": "https://rss.politico.com/politics-news.xml"
+      },
+      {
+        "id": "npr",
+        "name": "NPR",
+        "url": "https://feeds.npr.org/1014/rss.xml"
+      },
+      {
+        "id": "pbs",
+        "name": "PBS NewsHour",
+        "url": "https://www.pbs.org/newshour/feeds/rss/politics"
+      },
+      {
+        "id": "cbs",
+        "name": "CBS News",
+        "url": "https://www.cbsnews.com/latest/rss/politics"
+      },
+      {
+        "id": "nbc",
+        "name": "NBC News",
+        "url": "https://feeds.nbcnews.com/nbcnews/public/politics"
+      },
+      {
+        "id": "abc",
+        "name": "ABC News",
+        "url": "https://abcnews.go.com/abcnews/politicsheadlines"
+      },
+      {
+        "id": "fox",
+        "name": "Fox News",
+        "url": "https://moxie.foxnews.com/google-publisher/politics.xml"
+      },
+      {
+        "id": "guardian",
+        "name": "The Guardian",
+        "url": "https://www.theguardian.com/us-news/us-politics/rss"
+      },
+      {
+        "id": "hill",
+        "name": "The Hill",
+        "url": "https://thehill.com/homenews/campaign/feed/"
+      },
+      {
+        "id": "silver",
+        "name": "Silver Bulletin",
+        "url": "https://www.natesilver.net/feed"
+      },
+      {
+        "id": "gem",
+        "name": "Strength In Numbers",
+        "url": "https://www.gelliottmorris.com/feed"
+      },
+      {
+        "id": "downballot",
+        "name": "The Downballot",
+        "url": "https://www.the-downballot.com/feed"
+      },
+      {
+        "id": "ddhq",
+        "name": "Decision Desk HQ",
+        "url": "https://decisiondeskhq.substack.com/feed"
+      },
+      {
+        "id": "bolts",
+        "name": "Bolts",
+        "url": "https://boltsmag.org/feed/"
+      },
+      {
+        "id": "nevind",
+        "name": "Nevada Independent",
+        "url": "https://thenevadaindependent.com/feed"
+      }
     ],
     "_dead": "Checked 2026-10-25 and left out: CNN RSS (stale since 2022), Cook RSS (stale since 2024), Split Ticket (2025), WaPo (502), Axios (404), AJC (404), Sabato (403)."
   },
-
   "social": {
     "interval": 90,
     "lists": {
       "analysts": {
         "name": "Election analysts",
         "accounts": [
-          { "platform": "bluesky", "handle": "electproject.bsky.social", "name": "Michael McDonald" },
-          { "platform": "bluesky", "handle": "rubashkin.bsky.social", "name": "Jacob Rubashkin" },
-          { "platform": "bluesky", "handle": "kkondik.bsky.social", "name": "Kyle Kondik" },
-          { "platform": "bluesky", "handle": "gelliottmorris.com", "name": "G. Elliott Morris" },
-          { "platform": "bluesky", "handle": "decisiondeskhq.bsky.social", "name": "Decision Desk HQ" },
-          { "platform": "bluesky", "handle": "the-downballot.com", "name": "The Downballot" },
-          { "platform": "bluesky", "handle": "taniel.bsky.social", "name": "Taniel" },
-          { "platform": "bluesky", "handle": "boltsmag.org", "name": "Bolts" },
-          { "platform": "bluesky", "handle": "samshirazi.bsky.social", "name": "Sam Shirazi" },
-          { "platform": "bluesky", "handle": "kevintmorris.bsky.social", "name": "Kevin Morris" },
-          { "platform": "bluesky", "handle": "tbonier.bsky.social", "name": "Tom Bonier" }
+          {
+            "platform": "bluesky",
+            "handle": "electproject.bsky.social",
+            "name": "Michael McDonald"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "rubashkin.bsky.social",
+            "name": "Jacob Rubashkin"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "kkondik.bsky.social",
+            "name": "Kyle Kondik"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "gelliottmorris.com",
+            "name": "G. Elliott Morris"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "decisiondeskhq.bsky.social",
+            "name": "Decision Desk HQ"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "the-downballot.com",
+            "name": "The Downballot"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "taniel.bsky.social",
+            "name": "Taniel"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "boltsmag.org",
+            "name": "Bolts"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "samshirazi.bsky.social",
+            "name": "Sam Shirazi"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "kevintmorris.bsky.social",
+            "name": "Kevin Morris"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "tbonier.bsky.social",
+            "name": "Tom Bonier"
+          }
         ]
       },
       "x-analysts": {
         "name": "Analysts on X",
         "_comment": "Only fetched when X_BEARER_TOKEN is set (X bills per post read; since_id keeps quiet polls free). These analysts are effectively inactive on Bluesky.",
         "accounts": [
-          { "platform": "x", "handle": "Redistrict", "name": "Dave Wasserman" },
-          { "platform": "x", "handle": "Nate_Cohn", "name": "Nate Cohn" },
-          { "platform": "x", "handle": "NateSilver538", "name": "Nate Silver" },
-          { "platform": "x", "handle": "JJ_McCullough", "name": "JJ McCullough" }
+          {
+            "platform": "x",
+            "handle": "Redistrict",
+            "name": "Dave Wasserman"
+          },
+          {
+            "platform": "x",
+            "handle": "Nate_Cohn",
+            "name": "Nate Cohn"
+          },
+          {
+            "platform": "x",
+            "handle": "NateSilver538",
+            "name": "Nate Silver"
+          },
+          {
+            "platform": "x",
+            "handle": "JJ_McCullough",
+            "name": "JJ McCullough"
+          }
         ]
       },
       "trump": {
         "name": "Donald Trump on Truth Social",
         "accounts": [
-          { "platform": "truthsocial", "handle": "realDonaldTrump", "id": "107780257626128497", "name": "Donald J. Trump", "fallbackRss": "https://trumpstruth.org/feed" }
+          {
+            "platform": "truthsocial",
+            "handle": "realDonaldTrump",
+            "id": "107780257626128497",
+            "name": "Donald J. Trump",
+            "fallbackRss": "https://trumpstruth.org/feed"
+          }
         ]
       }
     },
     "_excluded": "Checked 2026-10-25: ap-news.bsky.social is a parody account; natecohn, redistrict, natesilver, jessicataylor and amyewalter on Bluesky have 1-7 posts; jonralston4sos is a different person."
   },
-
-  "trends": { "url": "https://trends.google.com/trending/rss?geo=US", "interval": 600 }
+  "trends": {
+    "url": "https://trends.google.com/trending/rss?geo=US",
+    "interval": 600
+  },
+  "stocks": {
+    "_comment": "Real-time quotes from CNBC's quote service (free, no key; same data the CNBC site shows). Symbols use CNBC notation: .SPX index, @SP.1 front-month future, US10Y yield, BTC.CB= Coinbase spot. Regular US trading ends 4 pm ET on Nov 3; futures, crypto, yields and after-hours prices keep moving while results come in.",
+    "quoteUrl": "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol",
+    "chartUrl": "https://ts-api.cnbc.com/harmony/app/charts/1D.json",
+    "interval": 30,
+    "chartInterval": 300,
+    "groups": [
+      {
+        "id": "indexes",
+        "name": "Indexes",
+        "symbols": [
+          {
+            "s": ".SPX",
+            "name": "S&P 500"
+          },
+          {
+            "s": ".DJI",
+            "name": "Dow"
+          },
+          {
+            "s": ".IXIC",
+            "name": "Nasdaq"
+          },
+          {
+            "s": ".RUT",
+            "name": "Russell 2000"
+          },
+          {
+            "s": ".VIX",
+            "name": "VIX volatility"
+          }
+        ]
+      },
+      {
+        "id": "futures",
+        "name": "Futures (trade overnight)",
+        "note": "The live market signal on election night, after the 4 pm close",
+        "symbols": [
+          {
+            "s": "@SP.1",
+            "name": "S&P 500 futures"
+          },
+          {
+            "s": "@ND.1",
+            "name": "Nasdaq 100 futures"
+          },
+          {
+            "s": "@DJ.1",
+            "name": "Dow futures"
+          },
+          {
+            "s": "@TFS.1",
+            "name": "Russell 2000 futures"
+          }
+        ]
+      },
+      {
+        "id": "tech",
+        "name": "Big tech",
+        "symbols": [
+          {
+            "s": "AAPL",
+            "name": "Apple"
+          },
+          {
+            "s": "MSFT",
+            "name": "Microsoft"
+          },
+          {
+            "s": "NVDA",
+            "name": "Nvidia"
+          },
+          {
+            "s": "GOOGL",
+            "name": "Alphabet"
+          },
+          {
+            "s": "AMZN",
+            "name": "Amazon"
+          },
+          {
+            "s": "META",
+            "name": "Meta"
+          },
+          {
+            "s": "TSLA",
+            "name": "Tesla"
+          },
+          {
+            "s": "AVGO",
+            "name": "Broadcom"
+          },
+          {
+            "s": "NFLX",
+            "name": "Netflix"
+          },
+          {
+            "s": "ORCL",
+            "name": "Oracle"
+          }
+        ]
+      },
+      {
+        "id": "conglomerates",
+        "name": "Conglomerates",
+        "symbols": [
+          {
+            "s": "BRK.B",
+            "name": "Berkshire Hathaway"
+          },
+          {
+            "s": "GE",
+            "name": "GE Aerospace"
+          },
+          {
+            "s": "HON",
+            "name": "Honeywell"
+          },
+          {
+            "s": "MMM",
+            "name": "3M"
+          },
+          {
+            "s": "DIS",
+            "name": "Disney"
+          },
+          {
+            "s": "CMCSA",
+            "name": "Comcast"
+          }
+        ]
+      },
+      {
+        "id": "policy",
+        "name": "Policy-sensitive",
+        "note": "Stocks that commonly move on election outcomes; not a prediction",
+        "symbols": [
+          {
+            "s": "DJT",
+            "name": "Trump Media"
+          },
+          {
+            "s": "LMT",
+            "name": "Lockheed Martin"
+          },
+          {
+            "s": "RTX",
+            "name": "RTX"
+          },
+          {
+            "s": "GEO",
+            "name": "GEO Group"
+          },
+          {
+            "s": "CXW",
+            "name": "CoreCivic"
+          },
+          {
+            "s": "XOM",
+            "name": "ExxonMobil"
+          },
+          {
+            "s": "TAN",
+            "name": "Solar ETF"
+          },
+          {
+            "s": "ICLN",
+            "name": "Clean energy ETF"
+          },
+          {
+            "s": "UNH",
+            "name": "UnitedHealth"
+          },
+          {
+            "s": "XLF",
+            "name": "Financials ETF"
+          },
+          {
+            "s": "JPM",
+            "name": "JPMorgan"
+          }
+        ]
+      },
+      {
+        "id": "macro",
+        "name": "Rates, dollar, commodities, crypto",
+        "symbols": [
+          {
+            "s": "US10Y",
+            "name": "10-year yield"
+          },
+          {
+            "s": "US2Y",
+            "name": "2-year yield"
+          },
+          {
+            "s": ".DXY",
+            "name": "Dollar index"
+          },
+          {
+            "s": "@CL.1",
+            "name": "WTI crude"
+          },
+          {
+            "s": "@GC.1",
+            "name": "Gold"
+          },
+          {
+            "s": "BTC.CB=",
+            "name": "Bitcoin"
+          },
+          {
+            "s": "ETH.CB=",
+            "name": "Ether"
+          }
+        ]
+      }
+    ]
+  }
 }

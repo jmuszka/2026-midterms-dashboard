@@ -152,3 +152,32 @@ test('YouTube live embed page yields the live video id', async () => {
   assert.deepEqual(parseYouTubeEmbed(fx('youtube-embed-live.html')), { status: 'live', videoId: 'aF9neWULq64', title: 'LIVE: NBC News NOW', via: 'embed' });
   assert.equal(parseYouTubeEmbed('<html>no player</html>'), null);
 });
+
+test('stocks: CNBC quotes and charts parse; sessions follow US market hours', async () => {
+  const { parseQuotes, parseChart, session } = await import('../lib/sources/stocks.mjs');
+  const q = parseQuotes(json('cnbc-quotes.json'));
+  for (const s of ['AAPL', '.SPX', '@SP.1', 'US10Y', 'BTC.CB=', 'DJT']) assert.ok(q[s]?.price > 0, s);
+  assert.equal(q.US10Y.unit, '%');
+  assert.ok(Math.abs(q['.SPX'].changePct - ((q['.SPX'].price - q['.SPX'].prevClose) / q['.SPX'].prevClose) * 100) < 1e-9);
+  const pts = parseChart(json('cnbc-chart-aapl.json'));
+  assert.ok(pts.length > 5 && pts.every(([t, v], i) => v > 0 && (i === 0 || t > pts[i - 1][0])), 'ascending 5-minute closes');
+  const at = (iso) => Date.parse(iso);
+  // election night, 9 pm ET Tuesday Nov 3: stocks and indexes closed, futures trading, crypto always
+  assert.equal(session('AAPL', 'STOCK', at('2026-11-04T02:00:00Z')), 'closed');
+  assert.equal(session('.SPX', 'INDEX', at('2026-11-04T02:00:00Z')), 'closed');
+  assert.equal(session('@SP.1', 'DERIVATIVE', at('2026-11-04T02:00:00Z')), 'open');
+  assert.equal(session('AAPL', 'STOCK', at('2026-11-03T22:30:00Z')), 'post');
+  assert.equal(session('@SP.1', 'DERIVATIVE', at('2026-11-03T22:30:00Z')), 'closed', 'daily 5-6 pm futures break');
+  assert.equal(session('BTC.CB=', 'INDEX', at('2026-10-25T18:00:00Z')), 'open');
+});
+
+test('timeline bundle separates stock prices from prediction markets', async () => {
+  const { bundleFromStore } = await import('../lib/timeline.mjs');
+  const { _memoryStore } = await import('../lib/store.mjs');
+  const st = _memoryStore();
+  await st.addTicks([{ key: 'control:S', t: '2026-11-04T01:00:00Z', v: 0.6 }, { key: 'stock:AAPL', t: '2026-11-04T01:00:00Z', v: 350 }, { key: 'stockpc:AAPL', t: '2026-11-04T01:00:00Z', v: 348 }]);
+  const b = await bundleFromStore(st);
+  assert.deepEqual(Object.keys(b.markets), ['control:S']);
+  assert.deepEqual(b.stocks.AAPL.v, [350]);
+  assert.deepEqual(b.stockPrev.AAPL.v, [348]);
+});

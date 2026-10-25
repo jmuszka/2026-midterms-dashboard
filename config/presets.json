@@ -4,28 +4,179 @@
     "name": "Election night",
     "description": "Balance, map and stream up front; seats, race card and pundits on workspaces 2-3",
     "inst": {
-      "balance-1": ["balance", { "chambers": "SHG" }],
-      "map-1": ["map", { "chamber": "S", "mode": "result" }],
-      "stream-1": ["stream", { "source": "nbc" }],
-      "feed-1": ["feed", { "kinds": "major" }],
-      "news-1": ["news", {}],
-      "chamber-1": ["chamber", { "chamber": "S" }],
-      "chamber-2": ["chamber", { "chamber": "H" }],
-      "race-1": ["race", {}],
-      "races-1": ["races", { "chamber": "S", "filter": "all" }],
-      "social-1": ["social", { "list": "analysts" }],
-      "social-2": ["social", { "list": "trump" }],
-      "markets-1": ["markets", { "races": "S" }],
-      "timeline-1": ["timeline", {}],
-      "map-2": ["map", { "chamber": "H", "mode": "result" }],
-      "races-2": ["races", { "chamber": "H", "filter": "competitive", "sort": "rating" }],
-      "trends-1": ["trends", {}]
+      "balance-1": [
+        "balance",
+        {
+          "chambers": "SHG"
+        }
+      ],
+      "map-1": [
+        "map",
+        {
+          "chamber": "S",
+          "mode": "result"
+        }
+      ],
+      "stream-1": [
+        "stream",
+        {
+          "source": "nbc"
+        }
+      ],
+      "feed-1": [
+        "feed",
+        {
+          "kinds": "major"
+        }
+      ],
+      "news-1": [
+        "news",
+        {}
+      ],
+      "chamber-1": [
+        "chamber",
+        {
+          "chamber": "S"
+        }
+      ],
+      "chamber-2": [
+        "chamber",
+        {
+          "chamber": "H"
+        }
+      ],
+      "race-1": [
+        "race",
+        {}
+      ],
+      "races-1": [
+        "races",
+        {
+          "chamber": "S",
+          "filter": "all"
+        }
+      ],
+      "social-1": [
+        "social",
+        {
+          "list": "analysts"
+        }
+      ],
+      "social-2": [
+        "social",
+        {
+          "list": "trump"
+        }
+      ],
+      "markets-1": [
+        "markets",
+        {
+          "races": "S"
+        }
+      ],
+      "timeline-1": [
+        "timeline",
+        {}
+      ],
+      "map-2": [
+        "map",
+        {
+          "chamber": "H",
+          "mode": "result"
+        }
+      ],
+      "races-2": [
+        "races",
+        {
+          "chamber": "H",
+          "filter": "competitive",
+          "sort": "rating"
+        }
+      ],
+      "trends-1": [
+        "trends",
+        {}
+      ],
+      "stocks-1": [
+        "stocks",
+        {
+          "group": "overview"
+        }
+      ],
+      "stocks-2": [
+        "stocks",
+        {
+          "group": "futures",
+          "display": "chart"
+        }
+      ]
     },
     "ws": {
-      "1": ["h", 0.56, ["v", 0.42, "balance-1", "map-1"], ["v", 0.5, "stream-1", ["h", 0.5, "feed-1", "news-1"]]],
-      "2": ["h", 0.58, ["v", 0.5, "chamber-1", "chamber-2"], ["v", 0.55, "race-1", "races-1"]],
-      "3": ["h", 0.36, "social-1", ["h", 0.5, "social-2", ["v", 0.6, "markets-1", "timeline-1"]]],
-      "4": ["h", 0.62, "map-2", "races-2"]
+      "1": [
+        "h",
+        0.56,
+        [
+          "v",
+          0.42,
+          "balance-1",
+          "map-1"
+        ],
+        [
+          "v",
+          0.5,
+          "stream-1",
+          [
+            "h",
+            0.5,
+            "feed-1",
+            "news-1"
+          ]
+        ]
+      ],
+      "2": [
+        "h",
+        0.58,
+        [
+          "v",
+          0.5,
+          "chamber-1",
+          "chamber-2"
+        ],
+        [
+          "v",
+          0.55,
+          "race-1",
+          "races-1"
+        ]
+      ],
+      "3": [
+        "h",
+        0.36,
+        "social-1",
+        [
+          "h",
+          0.5,
+          "social-2",
+          [
+            "v",
+            0.6,
+            "markets-1",
+            "timeline-1"
+          ]
+        ]
+      ],
+      "4": [
+        "h",
+        0.62,
+        "map-2",
+        "races-2"
+      ],
+      "5": [
+        "h",
+        0.58,
+        "stocks-1",
+        "stocks-2"
+      ]
     },
     "special": "trends-1"
   },
@@ -33,59 +184,329 @@
     "name": "Senate watch",
     "description": "Senate map and seats, race card, Senate races and their odds",
     "inst": {
-      "map-1": ["map", { "chamber": "S" }],
-      "chamber-1": ["chamber", { "chamber": "S" }],
-      "race-1": ["race", {}],
-      "races-1": ["races", { "chamber": "S", "sort": "close" }],
-      "markets-1": ["markets", { "races": "S" }],
-      "feed-1": ["feed", { "chambers": "S" }]
+      "map-1": [
+        "map",
+        {
+          "chamber": "S"
+        }
+      ],
+      "chamber-1": [
+        "chamber",
+        {
+          "chamber": "S"
+        }
+      ],
+      "race-1": [
+        "race",
+        {}
+      ],
+      "races-1": [
+        "races",
+        {
+          "chamber": "S",
+          "sort": "close"
+        }
+      ],
+      "markets-1": [
+        "markets",
+        {
+          "races": "S"
+        }
+      ],
+      "feed-1": [
+        "feed",
+        {
+          "chambers": "S"
+        }
+      ]
     },
-    "ws": { "1": ["h", 0.6, ["v", 0.6, "map-1", "chamber-1"], ["v", 0.5, "race-1", ["h", 0.5, "races-1", "feed-1"]]], "2": "markets-1" }
+    "ws": {
+      "1": [
+        "h",
+        0.6,
+        [
+          "v",
+          0.6,
+          "map-1",
+          "chamber-1"
+        ],
+        [
+          "v",
+          0.5,
+          "race-1",
+          [
+            "h",
+            0.5,
+            "races-1",
+            "feed-1"
+          ]
+        ]
+      ],
+      "2": "markets-1"
+    }
   },
   "house": {
     "name": "House watch",
     "description": "District map, House seats and the competitive districts",
     "inst": {
-      "map-1": ["map", { "chamber": "H" }],
-      "chamber-1": ["chamber", { "chamber": "H" }],
-      "races-1": ["races", { "chamber": "H", "filter": "competitive", "sort": "rating" }],
-      "race-1": ["race", {}],
-      "feed-1": ["feed", { "chambers": "H", "scope": "competitive" }]
+      "map-1": [
+        "map",
+        {
+          "chamber": "H"
+        }
+      ],
+      "chamber-1": [
+        "chamber",
+        {
+          "chamber": "H"
+        }
+      ],
+      "races-1": [
+        "races",
+        {
+          "chamber": "H",
+          "filter": "competitive",
+          "sort": "rating"
+        }
+      ],
+      "race-1": [
+        "race",
+        {}
+      ],
+      "feed-1": [
+        "feed",
+        {
+          "chambers": "H",
+          "scope": "competitive"
+        }
+      ]
     },
-    "ws": { "1": ["h", 0.62, ["v", 0.62, "map-1", "chamber-1"], ["v", 0.45, "race-1", ["v", 0.5, "races-1", "feed-1"]]] }
+    "ws": {
+      "1": [
+        "h",
+        0.62,
+        [
+          "v",
+          0.62,
+          "map-1",
+          "chamber-1"
+        ],
+        [
+          "v",
+          0.45,
+          "race-1",
+          [
+            "v",
+            0.5,
+            "races-1",
+            "feed-1"
+          ]
+        ]
+      ]
+    }
   },
   "wall": {
     "name": "Stream wall",
     "description": "Four live streams with a ticker underneath",
     "inst": {
-      "stream-1": ["stream", { "source": "nbc", "muted": false }],
-      "stream-2": ["stream", { "source": "abc" }],
-      "stream-3": ["stream", { "source": "cspan" }],
-      "stream-4": ["stream", { "source": "pbs" }],
-      "feed-1": ["feed", { "kinds": "calls", "ticker": true }],
-      "balance-1": ["balance", { "chambers": "SH" }]
+      "stream-1": [
+        "stream",
+        {
+          "source": "nbc",
+          "muted": false
+        }
+      ],
+      "stream-2": [
+        "stream",
+        {
+          "source": "abc"
+        }
+      ],
+      "stream-3": [
+        "stream",
+        {
+          "source": "cspan"
+        }
+      ],
+      "stream-4": [
+        "stream",
+        {
+          "source": "pbs"
+        }
+      ],
+      "feed-1": [
+        "feed",
+        {
+          "kinds": "calls",
+          "ticker": true
+        }
+      ],
+      "balance-1": [
+        "balance",
+        {
+          "chambers": "SH"
+        }
+      ]
     },
-    "ws": { "1": ["v", 0.86, ["v", 0.5, ["h", 0.5, "stream-1", "stream-2"], ["h", 0.5, "stream-3", "stream-4"]], ["h", 0.5, "feed-1", "balance-1"]] }
+    "ws": {
+      "1": [
+        "v",
+        0.86,
+        [
+          "v",
+          0.5,
+          [
+            "h",
+            0.5,
+            "stream-1",
+            "stream-2"
+          ],
+          [
+            "h",
+            0.5,
+            "stream-3",
+            "stream-4"
+          ]
+        ],
+        [
+          "h",
+          0.5,
+          "feed-1",
+          "balance-1"
+        ]
+      ]
+    }
   },
   "social": {
     "name": "Pundit row",
     "description": "Analysts, the Trump feed, X (when configured) and news side by side",
     "inst": {
-      "social-1": ["social", { "list": "analysts" }],
-      "social-2": ["social", { "list": "trump" }],
-      "social-3": ["social", { "list": "x-analysts" }],
-      "news-1": ["news", { "lane": "analysis" }]
+      "social-1": [
+        "social",
+        {
+          "list": "analysts"
+        }
+      ],
+      "social-2": [
+        "social",
+        {
+          "list": "trump"
+        }
+      ],
+      "social-3": [
+        "social",
+        {
+          "list": "x-analysts"
+        }
+      ],
+      "news-1": [
+        "news",
+        {
+          "lane": "analysis"
+        }
+      ]
     },
-    "ws": { "1": ["h", 0.25, "social-1", ["h", 0.33, "social-2", ["h", 0.5, "social-3", "news-1"]]] }
+    "ws": {
+      "1": [
+        "h",
+        0.25,
+        "social-1",
+        [
+          "h",
+          0.33,
+          "social-2",
+          [
+            "h",
+            0.5,
+            "social-3",
+            "news-1"
+          ]
+        ]
+      ]
+    }
   },
   "minimal": {
     "name": "Minimal",
     "description": "Balance of power, live feed and one stream",
     "inst": {
-      "balance-1": ["balance", { "chambers": "SHG" }],
-      "stream-1": ["stream", {}],
-      "feed-1": ["feed", { "kinds": "major" }]
+      "balance-1": [
+        "balance",
+        {
+          "chambers": "SHG"
+        }
+      ],
+      "stream-1": [
+        "stream",
+        {}
+      ],
+      "feed-1": [
+        "feed",
+        {
+          "kinds": "major"
+        }
+      ]
     },
-    "ws": { "1": ["h", 0.5, ["v", 0.45, "balance-1", "feed-1"], "stream-1"] }
+    "ws": {
+      "1": [
+        "h",
+        0.5,
+        [
+          "v",
+          0.45,
+          "balance-1",
+          "feed-1"
+        ],
+        "stream-1"
+      ]
+    }
+  },
+  "money": {
+    "name": "Markets & money",
+    "description": "Stocks, futures and prediction markets with the live feed",
+    "inst": {
+      "stocks-1": [
+        "stocks",
+        {
+          "group": "overview"
+        }
+      ],
+      "stocks-2": [
+        "stocks",
+        {
+          "group": "policy",
+          "display": "table"
+        }
+      ],
+      "markets-1": [
+        "markets",
+        {
+          "races": "S"
+        }
+      ],
+      "feed-1": [
+        "feed",
+        {
+          "kinds": "major"
+        }
+      ]
+    },
+    "ws": {
+      "1": [
+        "h",
+        0.55,
+        "stocks-1",
+        [
+          "v",
+          0.5,
+          "markets-1",
+          [
+            "h",
+            0.5,
+            "stocks-2",
+            "feed-1"
+          ]
+        ]
+      ]
+    }
   }
 }
