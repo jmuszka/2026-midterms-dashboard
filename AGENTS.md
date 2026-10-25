@@ -10,7 +10,7 @@ Read this before changing anything. It describes what exists, why it is built th
 
 A live, customisable "second screen" for the **US midterm elections of Tuesday 3 November 2026**: Senate (35 seats up, Democrats need net +4), House (435, 218 for a majority), 36 governors. It started as a one-night dashboard for the B.C. provincial election of 24 October 2026 (git tag `bc-baseline`) and was migrated on 2026-10-25. The owner works against a hard deadline; working, tested increments beat plans.
 
-- **Production** is still the BC build until someone deploys this one: https://bc-election-dashboard.vercel.app, Vercel project `bc-election-dashboard`, team `jmuszkas-projects`, linked through `.vercel/project.json`. Deploy with `npx vercel --prod`.
+- **Production:** https://2026-midterms-dashboard.vercel.app (the old https://bc-election-dashboard.vercel.app domain also points here). Vercel project `2026-midterms-dashboard` (renamed from `bc-election-dashboard` on 2026-10-25), team `jmuszkas-projects`, linked through `.vercel/project.json`. Deploy with `npx vercel --prod`.
 - **Local:** `npm install && npm start`, then http://localhost:8787. `npm run dev` keeps snapshots/events in `.cache/store.json` across restarts. Add `?sim=1` for the simulated night.
 - **Git:** commit small and often. Another agent session has edited this repo concurrently before; re-read a file right before editing it.
 
