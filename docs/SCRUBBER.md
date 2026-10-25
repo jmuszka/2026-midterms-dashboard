@@ -11,6 +11,35 @@ The simulator (`lib/sim.mjs`) is already a scrubber: `simulate(…, { offsetMin 
 
 Nothing in `public/js/views/*` needs to know about replay. That also means the whole feature can be built and rehearsed against the simulator this week, and only the recording side is exercised for the first time on Nov 3.
 
+## 0a. Architecture: one scraper on the owner's machine, a read-only site (decided 2026-10-25)
+
+```
+ owner's Arch box (election night)                 Supabase                     Vercel (read-only)           browsers
+ ┌──────────────────────────────┐   service key  ┌──────────────┐  anon key  ┌──────────────────────┐  CDN  ┌─────────┐
+ │ scripts/scraper.mjs          │ ─────────────▶ │ kv (latest)  │ ◀───────── │ /api/* read endpoints │ ────▶ │ viewers │
+ │  runPoll() loop, every task  │   writes only  │ events       │  reads only│ s-maxage 5-15 s       │       │         │
+ │  heartbeat row every 15 s    │                │ race_ticks…  │            │ no upstream fetches   │       │         │
+ └──────────────────────────────┘                │ heartbeat    │ ──Realtime─────────────────────────────────▶ │ (≤200)  │
+                                                 └──────────────┘   (optional, signal only)                    └─────────┘
+```
+
+- **Exactly one writer.** `scripts/scraper.mjs` runs the existing `runPoll()` loop (the same code `server.mjs` runs locally) with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from a local `.env`. It is the only thing that touches CNN, the state feeds, the markets, YouTube, Bluesky, Truth Social and X. One `prev` snapshot, one differ, so events and ticks are consistent by construction, and the idempotent RPC becomes a safety net rather than a necessity.
+- **Visitors only read.** On Vercel, `READ_ONLY=1` makes `snapshot()` return the stored copy and never run a task. `/api/poll` is disabled. Vercel holds only `SUPABASE_URL` and the **anon** key; the service-role key never leaves the owner's machine. Row-level security grants `select` to anon and nothing else.
+- **Why this is better than the cron design.** Upstream calls no longer scale with traffic or with the number of warm function instances: X credits are spent once per new post, not once per instance; CNN and the state sites see one polite client. And the residential IP fixes a production problem: YouTube serves Vercel the plain channel page, so six multi-stream channels (ABC, Sky, Newsmax, CNN Headlines, CBC, FOX 5 Atlanta) cannot be resolved there, while the `/live` page works from home. Truth Social's API is also less likely to challenge a home IP.
+
+**Getting updates to browsers.** Two paths, used together:
+
+1. *CDN-cached polling (primary).* Browsers keep polling `/api/results`, `/api/events?since=` and `/api/timeline?since=`. Each Vercel response reads Supabase and is cached for 5–15 s, so 10,000 viewers cost one Supabase read per route per cache window. This scales without limits and is already how the hub works; only the cache times shrink.
+2. *Supabase Realtime (enhancement).* The browser subscribes, with the anon key, to inserts on `heartbeat` (one row per scraper cycle). An insert means "new data": the hub refetches immediately instead of waiting for its next poll. Realtime is a nudge, not the data channel, because the free tier allows **200 concurrent connections** (Pro: 500, then paid) and election-night traffic could exceed that. Past the limit, clients silently fall back to path 1. Realtime's `supabase-js` is loaded from jsDelivr at a pinned version only when `config.realtime` is set.
+
+**Single point of failure: the owner's computer.** Mitigations, in order of importance:
+- `heartbeat` row `{ t, tasks: {name: ok|error}, version }` every cycle. Every read response carries `scraperAge`; the bar shows a red **Data paused since 9:41 PM ET** banner when it passes 3 minutes. Viewers are never shown stale data as live.
+- Run it as a systemd user service with `Restart=always`, under `systemd-inhibit --what=sleep:idle` so the machine cannot suspend, on wired ethernet, with the power-saving settings off. A unit file ships in `scripts/scraper.service`.
+- Failover (optional, off by default): if `scraperAge` exceeds 5 minutes, Vercel's read path may refresh results and markets inline from upstream, exactly as today, with X disabled to protect credits. A second machine (a laptop, a $5 VPS, the GitHub Actions workflow) can also run `scraper.mjs --standby`, which writes only while the heartbeat is stale. Two writers never run at once.
+- The run is logged to `.cache/scraper.log`; a crash or an upstream error shows in the heartbeat's task map, which the help overlay displays.
+
+**Load on the home connection.** Per minute: CNN four national files (~1 MB), NC/VA/GA/CO/IA feeds (~1 MB), market batches (~0.5 MB), YouTube resolver every 2 minutes (34 channels at ~150 KB to 1.25 MB, about 15 MB per cycle). Roughly 10–20 MB per minute down and a few hundred KB per minute up to Supabase. Fine on any home connection.
+
 ## 1. What has to be stored (Supabase)
 
 Today the store keeps only the **latest** snapshot per task (`kv` table), an append-only `events` table, and market `ticks` for control questions and competitive races. Replay needs the history of race state. Two options were considered:
@@ -89,9 +118,20 @@ Existing tables stay: `events` is already the replayable feed (every row has `t`
 
 **Size and cost.** Worst case is a House race changing on every 60 s poll for six hours: 506 × 360 ≈ 180k rows × ~200 B ≈ 36 MB. Realistic is a third of that. Supabase's free tier (500 MB) is fine. Egress is protected because `/api/timeline` is CDN-cached on Vercel and the browser downloads the night once. A `minTickSeconds` knob per chamber (60 for Senate/governor, 120 for House) coalesces chatter if the row count runs hot.
 
-**Who writes.** `lib/poll.mjs → afterRun('results')`, right after the events diff: for each race whose `candidates` votes, `called`, `winner`, `expectedPct` or `precincts` differ from `prev`, build a tick row; call `add_race_ticks` once with the whole batch. Every 5 minutes also write the keyframe. News and social tasks append unseen items/posts. The stream task appends a `stream_ticks` row when a channel's video id or status changes.
+**Who writes.** Only the scraper, in `lib/poll.mjs → afterRun('results')`, right after the events diff: for each race whose votes, `called`, `winner`, `expectedPct` or `precincts` differ from `prev`, build a tick row; call `add_race_ticks` once with the whole batch. Every 5 minutes also write the keyframe. News and social tasks append unseen items/posts. The stream task appends a `stream_ticks` row when a channel's video id or status changes. Each cycle ends with the `heartbeat` insert.
 
-**Scheduler is required for a complete record.** Without one, ticks are written only when a visitor's request happens to refresh a stale snapshot, so quiet minutes leave holes. Run `.github/workflows/poll.yml` or `scripts/poller.mjs` against `/api/poll` from 5 pm ET Nov 3 until the last competitive race is called (CA House seats: days). With `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set, all instances share one `prev`, so the diff is consistent; the RPC above makes concurrent writes harmless.
+```sql
+create table if not exists public.heartbeat (
+  id bigserial primary key, t timestamptz not null default now(), host text, version text, tasks jsonb not null default '{}'::jsonb
+);
+-- read-only for visitors; the service role bypasses RLS
+alter table public.race_ticks enable row level security; create policy "read" on public.race_ticks for select using (true);
+alter table public.heartbeat enable row level security;  create policy "read" on public.heartbeat for select using (true);
+-- (same select-only policy on kv, events, ticks, snapshots, news_items, posts, stream_ticks)
+alter publication supabase_realtime add table public.heartbeat;
+```
+
+**A complete record needs the scraper running** from 5 pm ET Nov 3 until the last competitive race is called (California House seats take days, so leave it running at a slower cadence afterwards, or restart it each evening).
 
 ## 2. The timeline bundle (what the browser downloads)
 
@@ -162,11 +202,11 @@ Everything up to step 4 is testable this week against the simulator.
 | Step | Work | Done when |
 |---|---|---|
 | 1 | Supabase project (Vercel Marketplace integration injects `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`, or supabase.com directly) and the schema above; `lib/store.mjs` gains `addRaceTicks`, `raceTicks(since)`, `addSnapshot`, `addNewsItems`, `addPosts`, `addStreamTicks` | `npm test` has a store contract test that runs against memory and, when env is set, Supabase |
-| 2 | Poller writes: ticks + keyframes + news/posts/streams appends in `afterRun`; market ticks for every mapped race | Running the local poller against `?sim=1` data fills the tables |
+| 2 | `scripts/scraper.mjs` (runPoll loop + heartbeat, `--standby` mode), `scripts/scraper.service`; poller writes ticks, keyframes, news/posts/streams appends; market ticks for every mapped race; `READ_ONLY=1` read path and `scraperAge` on every response; staleness banner | The scraper fills the tables from a laptop; a Vercel preview with `READ_ONLY=1` serves them and never calls upstream (asserted by a test that stubs `fetch`) |
 | 3 | `lib/timeline.mjs` bundle builder (sim and real) and `/api/timeline` with `since=`; `scripts/export-timeline.mjs` | Offline test: bundle from sim → `stateAt(t)` equals `simulate(…, t)` for 20 random t; bundle round-trips through `since=` appends |
-| 4 | `clock.js`, `timeline.js`, hub integration, transport strip, bar badge, keyboard, event jump, link `t` | Browser test: scrub to 240 min in sim, balance tallies and feed match `/api/results?sim=1&simAt=240`; share link with `t` lands on the same moment |
+| 4 | `clock.js`, `timeline.js`, hub integration, transport strip, bar badge, keyboard, event jump, link `t`; optional Realtime nudge on `heartbeat` | Browser test: scrub to 240 min in sim, balance tallies and feed match `/api/results?sim=1&simAt=240`; share link with `t` lands on the same moment |
 | 5 | News and social replay from the append-only tables; race-card margin sparkline | Browser test in sim at two moments shows different headline sets |
-| 6 | Dress rehearsal: run the real scheduler for 24 h before Nov 3 with real (empty) feeds; confirm ticks, keyframes and `since=` appends arrive; check Supabase row counts and Vercel function time | Runbook entry in AGENTS.md |
+| 6 | Dress rehearsal: run the scraper on the election-night machine for 24 h before Nov 3 (sleep inhibited, wired); kill it mid-run and confirm the banner appears and the systemd restart recovers; check Supabase row counts and Realtime connection count | Runbook entry in AGENTS.md |
 | 7 (stretch) | Stream VOD seek (§6) | NBC/C-SPAN replay seeks to the same minute |
 | After the night | `export-timeline.mjs` → `public/data/timeline-2026.json`, `/api/timeline` serves the file, pause Supabase | Site replays the night with no backend |
 
@@ -180,7 +220,9 @@ YouTube keeps most live streams as VODs under the **same video id**, and the emb
 
 - **Time base.** Ticks use poll time, not the source's vote timestamp, so the replay shows what the dashboard knew, when it knew it. Source times are kept in `src_t` for honesty in the race card ("reported 9:37 pm, seen 9:38 pm").
 - **Corrections.** Vote totals can go down (precinct corrections) and calls can be withdrawn; ticks store whatever the source said, `c = 3` marks an uncalled race, and the differ already emits `race_uncalled`.
-- **Holes.** If the scheduler dies, ticks stop; the strip shows a gap marker from `snapshots` cadence so viewers know the record is thin there. The staleness banner in the plan covers the live side.
+- **Holes.** If the scraper stops, ticks stop; the strip shows a gap marker from the heartbeat history so viewers know the record is thin there, and the live site shows the paused banner.
+- **Realtime limits.** 200 concurrent connections on the free tier. Realtime only nudges; polling through the CDN carries the data, so exceeding the limit degrades to 5–15 s latency, not to an outage.
+- **Secrets.** The service-role key lives only in the scraper's local `.env` (gitignored). If it leaks, rotate it in Supabase; the site keeps working because it only uses the anon key.
 - **Memory on phones.** The bundle is one object of ~3 MB; fine. Reconstruction is lazy per minute.
 - **Not storing the full merged snapshot every poll** is the one irreversible choice; the 5-minute keyframes are the hedge.
-- **Hobby-plan limits.** Vercel function time is fine (one bulk RPC per poll). Supabase free pauses after a week of inactivity: export the static file promptly after the night.
+- **Hobby-plan limits.** Vercel functions now only read, so function time drops. Supabase free pauses after a week of inactivity: export the static file promptly after the night.
