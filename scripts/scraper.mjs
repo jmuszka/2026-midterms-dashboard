@@ -34,7 +34,7 @@ if (!process.env.SUPABASE_URL || !(process.env.SUPABASE_SECRET_KEY || process.en
   console.error('scraper: SUPABASE_URL and SUPABASE_SECRET_KEY are required (run: npx vercel env pull .env --yes)');
   process.exit(1);
 }
-const { runPoll, scraperStatus } = await import('../lib/poll.mjs');
+const { runPoll, scraperStatus, setClockSkew } = await import('../lib/poll.mjs');
 const { getStore } = await import('../lib/store.mjs');
 
 const TICK = (+opt('--tick', 15) || 15) * 1000;
@@ -42,6 +42,21 @@ const STANDBY = flag('--standby');
 const HOST = os.hostname();
 const STALE_FOR_STANDBY = 180; // seconds without another scraper's heartbeat before standby takes over
 const log = (...a) => console.log(new Date().toLocaleTimeString('en-US', { hour12: false }), ...a);
+
+// Measure this machine's clock against Supabase's (HTTP Date header, ±1 s) and correct for it.
+async function syncClock() {
+  try {
+    const t0 = Date.now();
+    const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/`, { method: 'HEAD', headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || '' }, signal: AbortSignal.timeout(10000) });
+    const server = Date.parse(res.headers.get('date'));
+    if (!Number.isFinite(server)) return;
+    const skew = server + 500 - (t0 + Date.now()) / 2; // Date has 1 s resolution: assume mid-second
+    setClockSkew(Math.abs(skew) > 1500 ? Math.round(skew) : 0);
+    if (Math.abs(skew) > 2000) log(`WARNING: this machine's clock is ${Math.round(skew / 1000)}s ${skew > 0 ? 'slow' : 'fast'}; correcting writes for it. Fix the clock: sudo timedatectl set-ntp true`);
+  } catch (e) { log(`clock check failed: ${e.message}`); }
+}
+await syncClock();
+setInterval(syncClock, 5 * 60e3);
 
 const store = await getStore();
 if (store.kind !== 'supabase') { console.error(`scraper: expected the Supabase store, got ${store.kind}`); process.exit(1); }
