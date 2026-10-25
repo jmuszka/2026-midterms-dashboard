@@ -63,7 +63,7 @@ Every 15 seconds the scraper calls `runPoll({ beat: true })` (`lib/poll.mjs`). E
 | Task | Interval | Source (see `docs/RESEARCH.md`) | Writes |
 |---|---|---|---|
 | `results` | 60 s | CNN (AP calls) + NC, VA, GA, CO, IA official feeds, merged | `kv` snapshot, `events` (calls, flips, lead changes, vote batches, tight margins), `race_ticks` (only races that changed), a `snapshots` keyframe every 5 min |
-| `markets` | 60 s | Kalshi, Polymarket, PredictIt, all 506 races | `kv` snapshot, `events` (moves of 5+ points), `ticks` (only prices that moved, plus a 15-minute keep-alive) |
+| `markets` | 60 s | Kalshi, Polymarket, PredictIt, all 506 races; Polymarket world questions (`markets.topics`) | `kv` snapshot, `events` (moves of 5+ points), `ticks` (only prices that moved, plus a 15-minute keep-alive; world questions as `topic:<market id>`) |
 | `streams` | 120 s | YouTube live detection for 34 channels, Twitch, Kick | `kv` snapshot, `stream_ticks` (which video each channel showed, on change), `stream_videos` (each video's broadcast start, end and archived length) |
 | `news` | 120 s | 21 RSS feeds and Google News queries | `kv` snapshot, `news_items` (new headlines) |
 | `social:<list>` | 90 s | Bluesky analysts, Truth Social (trumpstruth.org fallback), X | `kv` snapshot, `posts` (new posts) |
@@ -101,7 +101,7 @@ All in `public`, created by `db/schema.sql` (idempotent: `psql "$POSTGRES_URL_NO
 | `kv` | Latest snapshot per task, plus small state (last keyframe, market alert times, video metadata seen) |
 | `events` | Feed event |
 | `race_ticks` | Race whose counts, call or expected vote changed, per cycle |
-| `ticks` | Prediction-market price change (Democratic probability) per race or chamber; stock price (`stock:<symbol>`) and previous close (`stockpc:<symbol>`) changes |
+| `ticks` | Prediction-market price change (Democratic probability) per race or chamber; world-question Yes price (`topic:<id>`); stock price (`stock:<symbol>`) and previous close (`stockpc:<symbol>`) changes |
 | `snapshots` | Full merged results every 5 minutes (rebuild/debug hedge) |
 | `news_items`, `posts` | Headline / social post, when first seen |
 | `stream_ticks` | Channel whose live video or status changed |

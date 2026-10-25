@@ -66,7 +66,42 @@
     "kalshi": "https://api.elections.kalshi.com/trade-api/v2",
     "polymarket": "https://gamma-api.polymarket.com",
     "predictit": "https://www.predictit.org/api/marketdata/all/",
-    "interval": 60
+    "interval": 60,
+    "topics": [
+      {
+        "id": "israel-election",
+        "name": "Israel election and Netanyahu",
+        "note": "Knesset election Tuesday 27 October 2026. Polymarket only; each line is the price of Yes.",
+        "events": [
+          "who-will-be-the-next-prime-minister-of-israel-after-the-next-election",
+          "israel-election-which-bloc-wins-more-seats",
+          "israel-election-any-coalition-wins-a-majority",
+          "israeli-legislative-election-winner",
+          "israel-election-likud-of-seats",
+          "will-israel-election-happen-as-scheduled-20260720204824362",
+          "netanyahu-out-before-2027",
+          "will-netanyahu-be-pardoned-by-june-30"
+        ]
+      },
+      {
+        "id": "israel-palestine",
+        "name": "Israel and Palestine",
+        "note": "Polymarket only; each line is the price of Yes.",
+        "events": [
+          "israel-x-hamas-ceasefire-phase-ii-by-october-31",
+          "israel-x-hamas-ceasefire-cancelled-by-october-31",
+          "will-hamaz-disarm-by-december-31",
+          "will-israel-launch-a-major-ground-offensive-in-gaza-by-october-31",
+          "foreign-intervention-in-gaza-by",
+          "us-forces-in-gaza-before-2027",
+          "will-israel-annex-west-bank-territory-before-2027",
+          "which-countries-will-recognize-palestine-before-2027",
+          "mahmoud-abbas-out-as-palestinian-president-by",
+          "israel-and-saudi-arabia-normalize-relations-before-2027"
+        ]
+      }
+    ],
+    "_topics": "Non-race Polymarket questions shown in the markets window. Add a group or an event slug (the part after polymarket.com/event/) and restart the scraper; nothing else to change."
   },
   "balance": {
     "_comment": "Seats NOT up in 2026, and the current composition for net-change maths. Senate: 53 R, 45 D, 2 I (caucus D); 35 seats up (22 R, 13 D). Governors not up: 14 states.",
@@ -118,7 +153,7 @@
     }
   },
   "streams": {
-    "_comment": "platform: youtube (channel = UC\u2026 id), twitch (channel = login), kick (channel = slug). 'tag' groups the picker. '24x7' channels have a single always-on stream, so the channel embed works; others need the live-ID resolver.",
+    "_comment": "platform: youtube (channel = UC… id), twitch (channel = login), kick (channel = slug). 'tag' groups the picker. '24x7' channels have a single always-on stream, so the channel embed works; others need the live-ID resolver.",
     "interval": 120,
     "list": [
       {
@@ -802,7 +837,7 @@
       {
         "id": "currencies",
         "name": "Currencies vs the dollar",
-        "note": "Rates as markets quote them (1 USD = \u2026 or 1 EUR = \u2026 USD). Arrows, colour and charts show each currency's strength against the US dollar.",
+        "note": "Rates as markets quote them (1 USD = … or 1 EUR = … USD). Arrows, colour and charts show each currency's strength against the US dollar.",
         "symbols": [
           {
             "s": "EUR=",

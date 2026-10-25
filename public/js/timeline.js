@@ -54,6 +54,7 @@ function merge(add) {
   }
   for (const [id, rows] of Object.entries(add.streams || {})) (b.streams[id] ||= []).push(...rows);
   if (add.videos) { b.videos = add.videos; b.archive = add.archive || {}; } // always sent in full
+  if (add.topics?.length) b.topics = add.topics; // names only, always sent in full
   if (add.to && (!b.to || add.to > b.to)) b.to = add.to;
   if (add.from && (!b.from || add.from < b.from)) b.from = add.from;
 }
@@ -123,9 +124,15 @@ export function marketsAt(ms, live) {
   const control = {};
   for (const k of ['S', 'H']) { const a = avg(val(`control:${k}`)); if (a) control[k] = a; }
   const races = {};
-  for (const k of Object.keys(m)) if (!k.startsWith('control:')) { const a = avg(val(k)); if (a) races[k] = a; }
+  for (const k of Object.keys(m)) if (!k.startsWith('control:') && !k.startsWith('topic:')) { const a = avg(val(k)); if (a) races[k] = a; }
+  // topic questions: names from the bundle, each outcome's Yes price as it was at the moment
+  const topics = (tl.bundle.topics || []).map((g) => ({ ...g, events: g.events.map((e) => {
+    const outcomes = e.outcomes.map((o) => ({ ...o, p: val(`topic:${o.id}`), d1: null })).filter((o) => o.p != null);
+    if (e.exclusive) outcomes.sort((a, b) => b.p - a.p);
+    return { ...e, outcomes };
+  }).filter((e) => e.outcomes.length) }));
   const series = (k) => (m[k] ? m[k].t.map((t, i) => ({ t: new Date(t * 1000).toISOString(), v: m[k].v[i] })).filter((p) => Date.parse(p.t) <= ms) : []);
-  return { control, races, ticks: { 'control:S': series('control:S'), 'control:H': series('control:H') }, meta: { errors: [] }, replay: true, ranAt: new Date(ms).toISOString() };
+  return { control, races, topics, ticks: { 'control:S': series('control:S'), 'control:H': series('control:H') }, meta: { errors: [] }, replay: true, ranAt: new Date(ms).toISOString() };
 }
 export function eventsAt(ms) {
   const iso = new Date(ms).toISOString();

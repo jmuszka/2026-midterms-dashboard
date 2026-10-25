@@ -181,3 +181,38 @@ test('timeline bundle separates stock prices from prediction markets', async () 
   assert.deepEqual(b.stocks.AAPL.v, [350]);
   assert.deepEqual(b.stockPrev.AAPL.v, [348]);
 });
+
+test('topics: Polymarket world questions parse from a saved Gamma response', async () => {
+  const { parseTopics } = await import('../lib/sources/markets.mjs');
+  const { markets: cfg } = require('../config/sources.json');
+  const groups = parseTopics(json('polymarket-topics.json'), cfg.topics);
+  assert.deepEqual(groups.map((g) => g.id), ['israel-election', 'israel-palestine']);
+  const ev = Object.fromEntries(groups.flatMap((g) => g.events).map((e) => [e.slug, e]));
+  assert.equal(Object.keys(ev).length, 18, 'every configured slug is in the fixture');
+  // one winner: ranked by price, placeholder "Person H" markets dropped
+  const pm = ev['who-will-be-the-next-prime-minister-of-israel-after-the-next-election'];
+  assert.ok(pm.exclusive);
+  assert.deepEqual(pm.outcomes.slice(0, 3).map((o) => o.label), ['Gadi Eizenkot', 'Benjamin Netanyahu', 'Naftali Bennett']);
+  assert.ok(!pm.outcomes.some((o) => /^Person /.test(o.label)));
+  assert.equal(pm.outcomes.find((o) => o.label === 'Benjamin Netanyahu').p, 0.255); // bid/ask mid
+  // date ladder: expired rungs dropped while one is open
+  assert.deepEqual(ev['netanyahu-out-before-2027'].outcomes.map((o) => o.label), ['December 31']);
+  // a two-sided question shows both sides
+  assert.deepEqual(ev['israel-election-which-bloc-wins-more-seats'].outcomes.map((o) => [o.label, o.id]), [['Bibi', '5475249'], ['Opp.', '5475249:1']]);
+  // a plain Yes/No question
+  assert.equal(ev['will-israel-annex-west-bank-territory-before-2027'].outcomes[0].label, 'Yes');
+  // the timeline gets names without prices
+  const { topicMeta } = await import('../lib/timeline.mjs');
+  assert.deepEqual(Object.keys(topicMeta(groups)[0].events[0].outcomes[0]), ['id', 'label']);
+});
+
+test('timeline bundle carries topic names and topic:<id> price ticks', async () => {
+  const { bundleFromStore } = await import('../lib/timeline.mjs');
+  const { _memoryStore } = await import('../lib/store.mjs');
+  const st = _memoryStore();
+  await st.set('snap:markets', { topics: [{ id: 'g', name: 'G', events: [{ slug: 's', title: 'Q?', exclusive: true, outcomes: [{ id: '1', label: 'A', p: 0.6, d1: 0.01 }] }] }] });
+  await st.addTicks([{ key: 'topic:1', t: '2026-10-27T20:00:00Z', v: 0.6 }]);
+  const b = await bundleFromStore(st);
+  assert.deepEqual(b.markets['topic:1'].v, [0.6]);
+  assert.deepEqual(b.topics[0].events[0].outcomes, [{ id: '1', label: 'A' }]);
+});

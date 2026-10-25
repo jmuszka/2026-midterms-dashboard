@@ -73,6 +73,7 @@ check('ws3 windows', (await visible()).split(',').sort().join(',') === 'markets-
 check('analysts feed has posts', await waitFor(`document.querySelectorAll('[data-win="social-1"] .post').length > 5`, 30000), await ev(`document.querySelectorAll('[data-win="social-1"] .post').length`));
 check('Trump feed has posts', await waitFor(`document.querySelectorAll('[data-win="social-2"] .post').length > 5`, 30000), await ev(`document.querySelectorAll('[data-win="social-2"] .post').length`));
 check('markets show Senate and House control', await waitFor(`document.querySelectorAll('[data-win="markets-1"] .mk-big').length === 2`, 30000));
+check('markets show the Israel and Israel/Palestine questions', await waitFor(`document.querySelectorAll('[data-win="markets-1"] .mk-topic').length === 2 && /Prime Minister of Israel/.test(document.querySelector('[data-win="markets-1"]').textContent)`, 30000), await ev(`document.querySelectorAll('[data-win="markets-1"] .tp-ev').length + ' questions'`));
 check('timeline lists poll closings', await ev(`document.querySelectorAll('[data-win="timeline-1"] .tl-list li').length >= 9`), await ev(`document.querySelectorAll('[data-win="timeline-1"] .tl-list li').length`));
 await shot('ws3.png');
 

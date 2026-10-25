@@ -144,6 +144,7 @@ Normalize everything to one race model borrowed from `elex`: `{race_id, chamber,
 
 ### Polymarket [live, no auth for reads]
 - Gamma: `https://gamma-api.polymarket.com/events?slug=…`, `/events?tag_slug=midterms&closed=false&limit=200&order=volume&ascending=false`, `/tags/slug/midterms` (tag 102289; `house-races` 100344), `/public-search?q=…`. `cache-control: public, max-age=300`. Each market has `outcomePrices` (JSON-encoded string array) and `clobTokenIds`. OpenAPI https://docs.polymarket.com/api-spec/gamma-openapi.yaml
+- Several events in one call: `/events?slug=a&slug=b&…` (checked 2026-10-25: 18 Israel/Palestine events, ~660 KB, ~1 s). Mutually exclusive events have `negRisk: true`; unfilled placeholder outcomes ("Person H") have `outcomePrices: null`; "by …?" ladders keep their expired rungs as `closed` markets.
 - CLOB: `https://clob.polymarket.com/midpoint?token_id=T` (verified `{"mid":"0.665"}`), `/price?token_id=T&side=buy`, `/book`, `/prices-history`, batch `POST /prices`. Data API `https://data-api.polymarket.com`.
 - Websocket (no auth): `wss://ws-subscriptions-clob.polymarket.com/ws/market`, subscribe `{"assets_ids":["<token>"],"type":"market"}`, send text `PING` every 10 s. https://docs.polymarket.com/market-data/realtime-data.md
 - Rate limits: Gamma `/events` 500 req/10 s, `/markets` 300/10 s; CLOB `/midpoint` and `/price` 1,500/10 s; IP-based. https://docs.polymarket.com/quickstart/introduction/rate-limits
