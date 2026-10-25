@@ -37,7 +37,7 @@ const visible = () => ev(`[...document.querySelectorAll('.win')].filter(w => !w.
 // workspace 1
 check('ws1 windows', (await visible()) === 'balance-1,map-1,stream-1,feed-1,news-1', await visible());
 check('simulation banner shown', await ev(`getComputedStyle(document.querySelector('.sim-banner')).display !== 'none'`));
-check('balance: three chambers with seat segments', await ev(`document.querySelectorAll('[data-win="balance-1"] .bop-row').length === 3 && document.querySelectorAll('[data-win="balance-1"] .seatbar .seg:not(.none)').length > 6`));
+check('balance: three chambers with seat segments', await waitFor(`document.querySelectorAll('[data-win="balance-1"] .bop-row').length === 3 && document.querySelectorAll('[data-win="balance-1"] .seatbar .seg:not(.none)').length > 6`));
 check('map: 50 states drawn, some coloured by result', await waitFor(`(() => { const p = [...document.querySelectorAll('[data-win="map-1"] path.area')]; return p.length === 50 && p.filter(x => /^#|url\\(/.test(x.getAttribute('fill'))).length > 10; })()`), await ev(`document.querySelectorAll('[data-win="map-1"] path.area').length`));
 check('feed: simulated events listed', await waitFor(`document.querySelectorAll('[data-win="feed-1"] .ev').length > 20`), await ev(`document.querySelectorAll('[data-win="feed-1"] .ev').length`));
 check('news: articles listed', await waitFor(`document.querySelectorAll('[data-win="news-1"] .news-item').length > 10`, 30000), await ev(`document.querySelectorAll('[data-win="news-1"] .news-item').length`));
@@ -85,7 +85,8 @@ await shot('ws4.png');
 await ev(`wm.workspace(5)`); await sleep(1200);
 check('ws5 windows', (await visible()).split(',').sort().join(',') === 'stocks-1,stocks-2', await visible());
 check('stocks overview: 8 headline tiles with prices', await waitFor(`(() => { const t = [...document.querySelectorAll('[data-win="stocks-1"] .stk-hero .stk-tile .stk-price')]; return t.length === 8 && t.every(x => /[0-9]/.test(x.textContent)); })()`, 30000), await ev(`document.querySelectorAll('[data-win="stocks-1"] .stk-hero .stk-tile').length`));
-check('stocks overview: heatmap of 27 stocks and the movers lists', await ev(`document.querySelectorAll('[data-win="stocks-1"] .stk-heat .cell').length === 27 && document.querySelectorAll('[data-win="stocks-1"] .stk-movers li').length === 10`));
+check('stocks overview: heatmap of 27 stocks and the movers lists', await ev(`document.querySelectorAll('[data-win="stocks-1"] .stk-heat')[0].querySelectorAll('.cell').length === 27 && document.querySelectorAll('[data-win="stocks-1"] .stk-movers li').length === 10`));
+check('stocks overview: 12 currencies against the dollar', await ev(`(() => { const h = document.querySelectorAll('[data-win="stocks-1"] .stk-heat')[1]; return !!h && [...h.querySelectorAll('.cell b')].map(b => b.textContent).join(',') === 'EUR,GBP,CAD,JPY,CNY,CNH,MXN,CHF,AUD,INR,KRW,BRL'; })()`));
 check('every change carries an arrow and a sign (not colour alone)', await ev(`[...document.querySelectorAll('[data-win="stocks-1"] .stk-chg')].every(x => /[▲▼■]/.test(x.textContent))`));
 check('futures as small multiples: 4 charts with lines', await waitFor(`document.querySelectorAll('[data-win="stocks-2"] .stk-mult figure').length === 4 && [...document.querySelectorAll('[data-win="stocks-2"] .stk-mult path')].some(p => (p.getAttribute('d') || '').length > 20)`, 30000));
 for (const [mode, sel, n] of [['table', '.stk-table tbody tr', 4], ['tiles', '.stk-grid .stk-tile', 4], ['heatmap', '.stk-heat .cell', 4]]) {

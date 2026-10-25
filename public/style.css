@@ -270,6 +270,7 @@ table.mini td { padding: 3px 8px 3px 0; border: 0; }
 .stk-head b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; color: var(--text); }
 .stk-price { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
 .stk-tile.big .stk-price { font-size: 20px; }
+.stk-tile.fx .stk-price { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stk-chg { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .stk-chg i { font-style: normal; font-size: 10px; }
 .up { color: #5cc9a7; } .down { color: #e39a5e; } .flat { color: var(--text-2); }

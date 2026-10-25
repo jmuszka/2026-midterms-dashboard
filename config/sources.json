@@ -617,7 +617,7 @@
     "interval": 600
   },
   "stocks": {
-    "_comment": "Real-time quotes from CNBC's quote service (free, no key; same data the CNBC site shows). Symbols use CNBC notation: .SPX index, @SP.1 front-month future, US10Y yield, BTC.CB= Coinbase spot. Regular US trading ends 4 pm ET on Nov 3; futures, crypto, yields and after-hours prices keep moving while results come in.",
+    "_comment": "Real-time quotes from CNBC's quote service (free, no key; same data the CNBC site shows). Symbols use CNBC notation: .SPX index, @SP.1 front-month future, US10Y yield, BTC.CB= Coinbase spot. Regular US trading ends 4 pm ET on Nov 3; futures, crypto, yields and after-hours prices keep moving while results come in. Currencies: CNBC quotes EUR=, GBP=, AUD= as USD per unit and the rest as units per USD; each entry's `pair` says which.",
     "quoteUrl": "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol",
     "chartUrl": "https://ts-api.cnbc.com/harmony/app/charts/1D.json",
     "interval": 30,
@@ -796,6 +796,85 @@
           {
             "s": "JPM",
             "name": "JPMorgan"
+          }
+        ]
+      },
+      {
+        "id": "currencies",
+        "name": "Currencies vs the dollar",
+        "note": "Rates as markets quote them (1 USD = \u2026 or 1 EUR = \u2026 USD). Arrows, colour and charts show each currency's strength against the US dollar.",
+        "symbols": [
+          {
+            "s": "EUR=",
+            "name": "Euro",
+            "ccy": "EUR",
+            "pair": "EUR/USD"
+          },
+          {
+            "s": "GBP=",
+            "name": "British pound",
+            "ccy": "GBP",
+            "pair": "GBP/USD"
+          },
+          {
+            "s": "CAD=",
+            "name": "Canadian dollar",
+            "ccy": "CAD",
+            "pair": "USD/CAD"
+          },
+          {
+            "s": "JPY=",
+            "name": "Japanese yen",
+            "ccy": "JPY",
+            "pair": "USD/JPY"
+          },
+          {
+            "s": "CNY=",
+            "name": "Chinese yuan",
+            "ccy": "CNY",
+            "pair": "USD/CNY"
+          },
+          {
+            "s": "CNH=",
+            "name": "Chinese yuan (offshore)",
+            "ccy": "CNH",
+            "pair": "USD/CNH"
+          },
+          {
+            "s": "MXN=",
+            "name": "Mexican peso",
+            "ccy": "MXN",
+            "pair": "USD/MXN"
+          },
+          {
+            "s": "CHF=",
+            "name": "Swiss franc",
+            "ccy": "CHF",
+            "pair": "USD/CHF"
+          },
+          {
+            "s": "AUD=",
+            "name": "Australian dollar",
+            "ccy": "AUD",
+            "pair": "AUD/USD"
+          },
+          {
+            "s": "INR=",
+            "name": "Indian rupee",
+            "ccy": "INR",
+            "pair": "USD/INR"
+          },
+          {
+            "s": "KRW=",
+            "name": "South Korean won",
+            "ccy": "KRW",
+            "pair": "USD/KRW"
+          },
+          {
+            "s": "BRL=",
+            "name": "Brazilian real",
+            "ccy": "BRL",
+            "pair": "USD/BRL"
           }
         ]
       },

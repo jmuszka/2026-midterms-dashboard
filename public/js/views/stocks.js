@@ -8,17 +8,38 @@ import { app, hub, esc, tip } from '../core.js';
 const UP = '#2FA88A', DOWN = '#CF7A26';
 const HERO = ['.SPX', '.IXIC', '.DJI', '@SP.1', '@ND.1', '.VIX', 'US10Y', 'BTC.CB='];
 const groups = () => app.config.stocks.groups;
-const nameOf = (s) => groups().flatMap((g) => g.symbols).find((x) => x.s === s)?.name || s;
-const isStock = (s) => !/^[.@]|^US\d+Y$|\.CB=$/.test(s);
+const metaOf = (s) => groups().flatMap((g) => g.symbols).find((x) => x.s === s) || {};
+const nameOf = (s) => metaOf(s).name || s;
+const isStock = (s) => !/^[.@]|^US\d+Y$|=$/.test(s);
+// Currencies: CNBC quotes some pairs as USD per unit (EUR/USD) and others as units per USD
+// (USD/JPY). Rates are shown as quoted; change, arrow, colour and charts always show the
+// currency's own strength against the dollar, so "up" means the same thing for every pair.
+const perUsd = (s) => /^USD\//.test(metaOf(s).pair || '');
+function adj(sym, q) {
+  if (!q || !metaOf(sym).pair) return q;
+  if (!perUsd(sym)) return { ...q, fx: true };
+  const strength = q.price && q.prevClose ? (q.prevClose / q.price - 1) * 100 : null;
+  return { ...q, fx: true, changePct: strength, change: null };
+}
+const adjSeries = (sym, pts) => (pts && perUsd(sym) ? pts.map(([t, v]) => [t, 1 / v]) : pts);
+const adjPrev = (sym, q) => (q?.prevClose && perUsd(sym) ? 1 / q.prevClose : q?.prevClose);
+function rate(sym, q) {
+  const m = metaOf(sym);
+  if (!m.pair || q?.price == null) return null;
+  const [a, b] = m.pair.split('/');
+  const d = q.price >= 100 ? 2 : 4;
+  return `1 ${a} = ${q.price.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })} ${b}`;
+}
 const tone = (x) => (x > 0.005 ? 'up' : x < -0.005 ? 'down' : 'flat');
 const arrow = (x) => (x > 0.005 ? '▲' : x < -0.005 ? '▼' : '■');
 function price(q) {
   if (q?.price == null) return '—';
   if (q.unit === '%') return `${q.price.toFixed(3)}%`;
+  if (q.fx) { const d = q.price >= 100 ? 2 : 4; return q.price.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
   const d = Math.abs(q.price) >= 1000 ? 2 : Math.abs(q.price) >= 1 ? 2 : 4;
   return q.price.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
-const pct = (q) => (q?.changePct == null ? '' : `${q.changePct > 0 ? '+' : q.changePct < 0 ? '−' : ''}${Math.abs(q.changePct).toFixed(2)}%`);
+const pct = (q) => (q?.changePct == null ? '' : Math.abs(q.changePct) < 0.005 ? '0.00%' : `${q.changePct > 0 ? '+' : '−'}${Math.abs(q.changePct).toFixed(2)}%`);
 const chg = (q) => (q?.change == null ? '' : q.unit === '%' ? `${q.change >= 0 ? '+' : '−'}${Math.abs(q.change * 100).toFixed(1)} bp` : `${q.change >= 0 ? '+' : '−'}${Math.abs(q.change).toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`);
 const SESSION = { open: 'Open', pre: 'Pre-market', post: 'After hours', closed: 'Closed' };
 
@@ -31,30 +52,33 @@ function sparkPath(points, w, h, prev) {
   return { d: points.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(''), base: prev != null ? y(prev) : null, x, y, t0, t1 };
 }
 function spark(sym, q, series, w = 120, h = 34) {
-  const pts = series?.[sym];
-  const { d, base } = sparkPath(pts, w, h, q?.prevClose);
+  const pts = adjSeries(sym, series?.[sym]);
+  const { d, base } = sparkPath(pts, w, h, adjPrev(sym, q));
   if (!d) return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true"></svg>`;
   return `<svg class="spark hoverable" data-sym="${esc(sym)}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${esc(nameOf(sym))} intraday">${base != null ? `<line x1="0" x2="${w}" y1="${base}" y2="${base}" class="prev"/>` : ''}<path d="${d}" stroke="${tone(q?.changePct) === 'down' ? DOWN : tone(q?.changePct) === 'up' ? UP : 'var(--text-2)'}"/></svg>`;
 }
-function tile(sym, q, series, big = false) {
+function tile(sym, q0, series, big = false) {
+  const q = adj(sym, q0);
   const t = tone(q?.changePct);
-  return `<div class="stk-tile ${big ? 'big' : ''}" title="${esc(q?.name || nameOf(sym))}">
+  const r = rate(sym, q0);
+  return `<div class="stk-tile ${big ? 'big' : ''}${r ? ' fx' : ''}" title="${esc(q?.name || nameOf(sym))}">
     <div class="stk-head"><b>${esc(nameOf(sym))}</b><span class="sess s-${q?.state || 'closed'}">${SESSION[q?.state] || ''}${q?.extended ? ' · ext' : ''}</span></div>
-    <div class="stk-price">${price(q)}</div>
-    <div class="stk-chg ${t}"><i aria-hidden="true">${arrow(q?.changePct)}</i> ${pct(q)} <span class="muted">${chg(q)}</span></div>
+    <div class="stk-price">${r ? esc(r) : price(q)}</div>
+    <div class="stk-chg ${t}"><i aria-hidden="true">${arrow(q?.changePct)}</i> ${pct(q)} <span class="muted">${r ? `${esc(metaOf(sym).ccy)} vs $` : chg(q)}</span></div>
     ${spark(sym, q, series)}
   </div>`;
 }
 function heatmap(syms, quotes) {
   const color = (x) => {
     if (x == null) return 'var(--none)';
+    if (Math.abs(x) < 0.005) return 'var(--panel-2)'; // unchanged: neutral, not faintly "up"
     const k = Math.max(-1, Math.min(1, x / 3)); // ±3% saturates
     return k >= 0 ? `color-mix(in srgb, ${UP} ${Math.round(18 + k * 72)}%, var(--panel-2))` : `color-mix(in srgb, ${DOWN} ${Math.round(18 - k * 72)}%, var(--panel-2))`;
   };
-  return `<div class="stk-heat">${syms.map((s) => { const q = quotes[s]; return `<div class="cell" style="background:${color(q?.changePct)}" title="${esc(q?.name || nameOf(s))}: ${price(q)} (${pct(q)})"><b>${esc(isStock(s) ? s : nameOf(s))}</b><span>${arrow(q?.changePct)} ${pct(q)}</span></div>`; }).join('')}</div>`;
+  return `<div class="stk-heat">${syms.map((s) => { const q = adj(s, quotes[s]); return `<div class="cell" style="background:${color(q?.changePct)}" title="${esc(q?.name || nameOf(s))}: ${price(q)} (${pct(q)})"><b>${esc(metaOf(s).ccy || (isStock(s) ? s : nameOf(s)))}</b><span>${arrow(q?.changePct)} ${pct(q)}</span></div>`; }).join('')}</div>`;
 }
 function movers(syms, quotes, n = 5) {
-  const list = syms.map((s) => ({ s, q: quotes[s] })).filter((x) => x.q?.changePct != null).sort((a, b) => b.q.changePct - a.q.changePct);
+  const list = syms.map((s) => ({ s, q: adj(s, quotes[s]) })).filter((x) => x.q?.changePct != null).sort((a, b) => b.q.changePct - a.q.changePct);
   const row = ({ s, q }) => `<li><span>${esc(nameOf(s))} <small class="muted">${esc(s)}</small></span><span class="${tone(q.changePct)}">${arrow(q.changePct)} ${pct(q)}</span></li>`;
   return `<div class="stk-movers"><div><h4>Biggest gains</h4><ol>${list.slice(0, n).map(row).join('')}</ol></div><div><h4>Biggest losses</h4><ol>${list.slice(-n).reverse().map(row).join('')}</ol></div></div>`;
 }
@@ -62,7 +86,7 @@ function movers(syms, quotes, n = 5) {
 function multiples(syms, quotes, series) {
   const W = 220, H = 70;
   const pctSeries = Object.fromEntries(syms.map((s) => {
-    const pc = quotes[s]?.prevClose, pts = series?.[s] || [];
+    const pc = adjPrev(s, quotes[s]), pts = adjSeries(s, series?.[s]) || [];
     return [s, pc ? pts.map(([t, v]) => [t, ((v - pc) / pc) * 100]) : []];
   }));
   const all = Object.values(pctSeries).flat();
@@ -70,19 +94,21 @@ function multiples(syms, quotes, series) {
   const t0 = Math.min(...all.map((p) => p[0])), t1 = Math.max(...all.map((p) => p[0]));
   const x = (t) => ((t - t0) / Math.max(1, t1 - t0)) * W, y = (v) => H - 4 - ((v - lo) / (hi - lo || 1)) * (H - 8);
   return `<div class="stk-mult" data-t0="${t0}" data-t1="${t1}">${syms.map((s) => {
-    const pts = pctSeries[s], q = quotes[s];
+    const pts = pctSeries[s], q = adj(s, quotes[s]);
     const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join('');
     return `<figure data-sym="${esc(s)}"><figcaption><b>${esc(nameOf(s))}</b> <span class="${tone(q?.changePct)}">${arrow(q?.changePct)} ${pct(q)}</span></figcaption>
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(nameOf(s))}: % change since previous close"><line class="zero" x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}"/><path d="${d}" stroke="${tone(q?.changePct) === 'down' ? DOWN : UP}"/><line class="cross" x1="-10" x2="-10" y1="0" y2="${H}"/></svg></figure>`;
   }).join('')}<p class="muted small">% change since the previous close, all on one scale (${lo.toFixed(1)}% to +${hi.toFixed(1)}%).</p></div>`;
 }
 function table(syms, quotes, sort) {
-  const rows = syms.map((s) => ({ s, q: quotes[s] || {} }));
+  const rows = syms.map((s) => ({ s, q: adj(s, quotes[s]) || {}, raw: quotes[s] || {} }));
   const key = { name: (r) => nameOf(r.s), pct: (r) => r.q.changePct ?? -1e9, price: (r) => r.q.price ?? 0 }[sort] || ((r) => 0);
   rows.sort((a, b) => (sort === 'name' ? key(a).localeCompare(key(b)) : key(b) - key(a)));
   const range = (q) => (q.low && q.high && q.high > q.low ? Math.max(0, Math.min(100, ((q.price - q.low) / (q.high - q.low)) * 100)) : null);
-  return `<div class="table-scroll"><table class="stk-table"><thead><tr><th data-sort="name">Name</th><th class="num" data-sort="price">Price</th><th class="num" data-sort="pct">Change</th><th>Day range</th><th>Session</th></tr></thead><tbody>${rows.map(({ s, q }) => `<tr><td>${esc(nameOf(s))} <small class="muted">${esc(s)}</small></td><td class="num">${price(q)}</td><td class="num ${tone(q.changePct)}">${arrow(q.changePct)} ${pct(q)}</td><td>${range(q) != null ? `<span class="rng" title="${q.low} – ${q.high}"><i style="left:${range(q)}%"></i></span>` : ''}</td><td><span class="sess s-${q.state || 'closed'}">${SESSION[q.state] || ''}</span></td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="table-scroll"><table class="stk-table"><thead><tr><th data-sort="name">Name</th><th class="num" data-sort="price">Price</th><th class="num" data-sort="pct">Change</th><th>Day range</th><th>Session</th></tr></thead><tbody>${rows.map(({ s, q, raw }) => `<tr><td>${esc(nameOf(s))} <small class="muted">${esc(metaOf(s).pair || s)}</small></td><td class="num">${rate(s, raw) ? esc(rate(s, raw)) : price(q)}</td><td class="num ${tone(q.changePct)}">${arrow(q.changePct)} ${pct(q)}</td><td>${range(q) != null ? `<span class="rng" title="${q.low} – ${q.high}"><i style="left:${range(q)}%"></i></span>` : ''}</td><td><span class="sess s-${q.state || 'closed'}">${SESSION[q.state] || ''}</span></td></tr>`).join('')}</tbody></table></div>`;
 }
+
+export const _forTests = { adj, adjSeries, rate };
 
 export default {
   type: 'stocks', name: 'Stock market',
@@ -107,8 +133,10 @@ export default {
       body.querySelector('.stk-status').textContent = `US stocks: ${SESSION[quotes.AAPL?.state] || '—'} · futures: ${SESSION[fut?.state] || '—'}${data.replay ? ' · replay' : ''}`;
       if (settings.group === 'overview') {
         const stocks = groups().filter((g) => ['tech', 'conglomerates', 'policy'].includes(g.id)).flatMap((g) => g.symbols.map((x) => x.s));
+        const fx = (groups().find((g) => g.id === 'currencies')?.symbols || []).map((x) => x.s);
         out.innerHTML = `<div class="stk-hero">${HERO.map((s) => tile(s, quotes[s], series, true)).join('')}</div>
           <h4>Stocks today <small class="muted">tile colour = % change, ±3% saturates</small></h4>${heatmap(stocks, quotes)}${movers(stocks, quotes)}
+          ${fx.length ? `<h4>Currencies vs the dollar <small class="muted">▲ = the currency gained against the US dollar</small></h4>${heatmap(fx, quotes)}` : ''}
           ${quotes.AAPL?.state !== 'open' && fut?.state === 'open' ? '<p class="muted small">The stock market is closed; S&amp;P and Nasdaq futures are the live read on investors\' reaction.</p>' : ''}`;
       } else {
         const g = groups().find((x) => x.id === settings.group);
@@ -145,7 +173,7 @@ export default {
       const t = +mult.dataset.t0 + f * (+mult.dataset.t1 - +mult.dataset.t0);
       mult.querySelectorAll('line.cross').forEach((l) => { l.setAttribute('x1', f * 220); l.setAttribute('x2', f * 220); });
       const rows = [...mult.querySelectorAll('figure')].map((fg) => {
-        const s = fg.dataset.sym, pts = data.series?.[s] || [], pc = data.quotes[s]?.prevClose;
+        const s = fg.dataset.sym, pts = adjSeries(s, data.series?.[s]) || [], pc = adjPrev(s, data.quotes[s]);
         let best = null; for (const p of pts) if (p[0] <= t) best = p;
         return best && pc ? `<tr><td>${esc(nameOf(s))}</td><td class="num">${(((best[1] - pc) / pc) * 100).toFixed(2)}%</td></tr>` : '';
       }).join('');

@@ -26,7 +26,7 @@ Every window is an instance of a type with its own settings (the gear in its tit
 | Social | Election analysts (Bluesky), Donald Trump on Truth Social, analysts on X (needs `X_BEARER_TOKEN`) | `/api/social?list=` |
 | Prediction markets | Senate and House control on Kalshi, Polymarket and PredictIt, 48-hour history, both-chambers combo, race odds | `/api/markets` |
 | Google Trends | What the US is searching | trending RSS |
-| Stock market | Indexes, overnight futures, big tech, conglomerates, policy-sensitive stocks, yields, dollar, oil, gold, crypto: overview (headline tiles, heatmap, movers), tiles with sparklines, small-multiple charts, table; trading session per symbol; replays with the timeline | CNBC quotes (30 s) and intraday charts (5 min) |
+| Stock market | Indexes, overnight futures, big tech, conglomerates, policy-sensitive stocks, currencies (euro, pound, Canadian dollar, yen, yuan, peso, franc, Australian dollar, rupee, won, real), yields, dollar index, oil, gold, crypto: overview (headline tiles, heatmap, movers), tiles with sparklines, small-multiple charts, table; trading session per symbol; replays with the timeline | CNBC quotes (30 s) and intraday charts (5 min) |
 
 **Sharing:** the **Share** button copies a link whose `#l=` fragment carries the full layout and every window's settings. Your own layout is remembered in this browser.
 

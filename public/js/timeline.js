@@ -147,11 +147,12 @@ export function postsAt(list, ms) {
 }
 // Stock quotes at a moment, rebuilt from recorded prices (stock:SYM) and previous closes
 // (stockpc:SYM); intraday series = the recorded prices of the 24 hours before the moment.
-const typeOf = (s) => (s.startsWith('@') ? 'DERIVATIVE' : /^US\d+Y$/.test(s) ? 'BOND' : /\.CB=$/.test(s) ? 'CRYPTO' : s.startsWith('.') ? 'INDEX' : 'STOCK');
+const typeOf = (s) => (s.startsWith('@') ? 'DERIVATIVE' : /^US\d+Y$/.test(s) ? 'BOND' : /\.CB=$/.test(s) ? 'CRYPTO' : /=$/.test(s) ? 'CURRENCY' : s.startsWith('.') ? 'INDEX' : 'STOCK');
 export function sessionAt(symbol, ms) {
   const et = new Date(new Date(ms).toLocaleString('en-US', { timeZone: 'America/New_York' }));
   const day = et.getDay(), mins = et.getHours() * 60 + et.getMinutes(), type = typeOf(symbol);
   if (type === 'CRYPTO') return 'open';
+  if (type === 'CURRENCY') return day === 6 || (day === 5 && mins >= 1020) || (day === 0 && mins < 1020) ? 'closed' : 'open';
   if (type === 'DERIVATIVE' || type === 'BOND') {
     if (day === 6 || (day === 5 && mins >= 1020) || (day === 0 && mins < 1080)) return 'closed';
     return mins >= 1020 && mins < 1080 ? 'closed' : 'open';

@@ -68,7 +68,7 @@ Every 15 seconds the scraper calls `runPoll({ beat: true })` (`lib/poll.mjs`). E
 | `news` | 120 s | 21 RSS feeds and Google News queries | `kv` snapshot, `news_items` (new headlines) |
 | `social:<list>` | 90 s | Bluesky analysts, Truth Social (trumpstruth.org fallback), X | `kv` snapshot, `posts` (new posts) |
 | `trends` | 600 s | Google Trends trending RSS | `kv` snapshot |
-| `stocks` | 30 s | CNBC quote service: 43 indexes, futures, stocks, yields, commodities, crypto (incl. after-hours prices) | `kv` snapshot, `ticks` keyed `stock:<symbol>` (price, on change) and `stockpc:<symbol>` (previous close, when a new session starts) |
+| `stocks` | 30 s | CNBC quote service: 55 indexes, futures, stocks, currencies, yields, commodities, crypto (incl. after-hours prices) | `kv` snapshot, `ticks` keyed `stock:<symbol>` (price, on change) and `stockpc:<symbol>` (previous close, when a new session starts) |
 | `stockcharts` | 300 s | CNBC 1-day charts, downsampled to 5-minute closes, last 24 h | `kv` snapshot |
 
 The cycle ends with a `heartbeat` row: time, host, version, and each task that ran with `ok` or its error. That row is what the site uses to show freshness, and its insert is the Realtime nudge that makes browsers refetch.
