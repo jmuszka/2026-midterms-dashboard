@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "STORE_FILE=.cache/store.json node server.mjs",
-    "test": "node --test tests/data.test.mjs",
+    "test": "node --test tests/data.test.mjs tests/readonly.test.mjs",
     "test:browser": "node tests/smoke.browser.mjs .cache/browser && node tests/wm.browser.mjs .cache/browser \"http://localhost:8787/?sim=1&simAt=240\"",
     "build:races": "node scripts/build-races.mjs --refresh",
     "build:markets": "node scripts/build-markets.mjs",

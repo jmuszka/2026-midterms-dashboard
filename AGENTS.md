@@ -15,6 +15,10 @@ A live, customisable "second screen" for the **US midterm elections of Tuesday 3
 - **Local:** `npm install && npm start`, then http://localhost:8787. `npm run dev` keeps snapshots/events in `.cache/store.json` across restarts. Add `?sim=1` for the simulated night.
 - **Git:** commit small and often. Another agent session has edited this repo concurrently before; re-read a file right before editing it.
 
+## Election-night data flow (decided 2026-10-25)
+
+The owner's machine runs **`scripts/scraper.mjs`**, the only writer: every source task, snapshots, events, the scrubber time series and a heartbeat row per 15 s cycle, into the Supabase project `midterms-2026` (Vercel Marketplace integration, connected to the project). The Vercel site runs with **`READ_ONLY=1`**: it reads Supabase with the publishable key, never fetches an upstream source, refuses `/api/poll`, and shows a red "Live data paused" banner when the heartbeat is older than 3 minutes. Browsers get updates by CDN-cached polling plus a Supabase Realtime subscription to heartbeat inserts (a nudge; refetches carry the heartbeat id as `v=` so the CDN serves each version once). Run the scraper with `node scripts/scraper.mjs` (reads `.env` from `npx vercel env pull .env --yes`) or as the systemd user service in `scripts/scraper.service`. A second machine can run `--standby`. Schema: `db/schema.sql` (apply with `psql "$POSTGRES_URL_NON_POOLING" -f db/schema.sql`; idempotent). Without the scraper running, the production site shows the paused banner over the last data written; `?sim=1` still works.
+
 ## Architecture
 
 No build step, no frontend framework, Node 22+ ESM. Static `public/` plus **one** Vercel function, `api/[route].mjs`, which dispatches to `lib/routes.mjs`; `server.mjs` uses the same router locally. Vercel rewrites `/api/x` to `/api/[route]?route=x`, so the handler reads the `route` query parameter first.
@@ -89,7 +93,8 @@ Key decisions:
 ## Tests
 
 ```
-npm test                                   # offline, <1 s: manifest totals, every parser on fixtures, merge, differ, simulator, social
+npm test                                   # offline, <1 s: parsers, merge, differ, simulator, social, read-only mode
+node tests/live.browser.mjs <dir> <url>    # with a scraper running and a READ_ONLY server: Realtime nudge (add --paused for the banner)
 npm start & npm run test:browser           # needs chromium: smoke (31 checks) + window manager (all checks), simulation mode
 node tests/smoke.browser.mjs <dir> <url>   # screenshots ws1-4, reader, phone into <dir>
 ```
@@ -98,6 +103,7 @@ node tests/smoke.browser.mjs <dir> <url>   # screenshots ws1-4, reader, phone in
 
 - **Days before:** `npm run build:races` and `npm run build:markets` (candidates, ratings and House markets keep changing), commit, deploy. Re-check stream channels for scheduled election-night streams (`/api/streams`).
 - **Oct 28 and Oct 31, 8 am–noon PT:** California runs SOS API test feeds. A CA adapter is not written yet; this is the window to write and test one if wanted.
+- **From 4 pm ET:** start the scraper on the election-night machine (`systemctl --user start midterms-scraper`), wired network, charger in; confirm `/api/status` shows a fresh heartbeat.
 - **5 pm ET:** confirm Georgia's 2026 slug at https://results.sos.ga.gov/results/public/Georgia/elections and fix `config/sources.json` if it is not `2026NovGen`.
 - **6 pm ET:** check `/api/results` → `sources` lists cnn with a non-zero count once CNN populates `2026-SG.json`.
 - **Hourly:** adapter errors appear in `/api/results` `sources[].errors` and in each window's meta line; Kalshi/Polymarket errors in `/api/markets` `meta.errors`.

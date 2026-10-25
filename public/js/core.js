@@ -64,9 +64,12 @@ function urlFor(key) {
   throw new Error(`unknown hub key ${key}`);
 }
 const everyFor = (key) => (KEYS[key]?.every || 60) * 1000;
-async function pull(key) {
+// v: data version (the scraper heartbeat id). Every viewer nudged by the same heartbeat asks for
+// the same URL, so the CDN fetches it once per heartbeat instead of once per viewer.
+async function pull(key, v) {
   try {
-    const data = await getJSON(urlFor(key));
+    const u = urlFor(key);
+    const data = await getJSON(v ? `${u}${u.includes('?') ? '&' : '?'}v=${v}` : u);
     last.set(key, { data, at: Date.now() });
   } catch (e) {
     const prev = last.get(key);
@@ -83,15 +86,15 @@ export const hub = {
     return () => { subs.get(key)?.delete(fn); if (!subs.get(key)?.size) { clearInterval(timers.get(key)); timers.delete(key); } };
   },
   get: (key) => last.get(key)?.data || null,
-  refresh: (key) => pull(key),
+  refresh: (key, v) => (subs.get(key)?.size ? pull(key, v) : null), // only keys someone is watching
+  keys: () => [...subs.keys()].filter((k) => subs.get(k)?.size),
 };
 
 /* events are incremental (?since=id), merged into one list shared by every window */
 export const events = { list: [], pollCloses: [], now: null, since: 0, subs: new Set(), timer: null, error: null };
-async function pullEvents() {
+async function pullEvents(v) {
   try {
-    const sep = app.sim ? '&' : '&';
-    const d = await getJSON(`/api/events?since=${events.since}${simQ(sep)}`);
+    const d = await getJSON(`/api/events?since=${events.since}${simQ('&')}${v ? `&v=${v}` : ''}`);
     const fresh = d.events.filter((e) => e.id > events.since);
     events.list.push(...fresh);
     if (events.list.length > 3000) events.list.splice(0, events.list.length - 3000);
@@ -100,6 +103,7 @@ async function pullEvents() {
     for (const fn of events.subs) fn(events, fresh);
   } catch (e) { events.error = e.message; for (const fn of events.subs) fn(events, []); }
 }
+export const refreshEvents = (v) => (events.timer ? pullEvents(v) : null);
 export function subscribeEvents(fn) {
   events.subs.add(fn);
   if (events.now) queueMicrotask(() => fn(events, []));

@@ -293,6 +293,10 @@ table.mini td { padding: 3px 8px 3px 0; border: 0; }
 .toast { background: #0b0e13f2; border: 1px solid var(--border); border-left: 4px solid var(--c, var(--accent)); border-radius: 8px; padding: 10px 12px; font-size: 13px; box-shadow: 0 12px 32px rgba(0,0,0,.5); animation: pop .2s ease-out; transition: opacity .4s, transform .4s; }
 .toast.out { opacity: 0; transform: translateY(8px); }
 
+/* ---------- scraper paused ---------- */
+.paused-banner { flex: none; text-align: center; font-size: 12px; font-weight: 600; padding: 4px 12px; background: #5a1a1a; color: #fff; border-bottom: 1px solid #8a2c2c; }
+.paused-banner[hidden] { display: none; }
+
 /* ---------- simulation ---------- */
 .sim-banner { display: none; }
 body.sim .sim-banner { display: block; flex: none; text-align: center; font-size: 12px; font-weight: 600; letter-spacing: .03em; padding: 4px 12px; background: #4a1d1d; color: #ffd6d6; border-bottom: 1px solid #7a2c2c; }

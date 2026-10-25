@@ -1,0 +1,27 @@
+# systemd user service for the election-night scraper.
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp scripts/scraper.service ~/.config/systemd/user/midterms-scraper.service
+#   (edit WorkingDirectory below if the repo lives elsewhere)
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now midterms-scraper
+#   loginctl enable-linger "$USER"        # keep it running when you log out
+# Watch:  journalctl --user -u midterms-scraper -f
+# Stop:   systemctl --user stop midterms-scraper
+#
+# systemd-inhibit stops the machine from sleeping or idling while the scraper runs.
+[Unit]
+Description=US midterms 2026 scraper (writes to Supabase)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Projects/bc-election-dashboard
+ExecStart=/usr/bin/systemd-inhibit --what=sleep:idle --who=midterms-scraper --why="Election night scraper" /usr/bin/node scripts/scraper.mjs
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target

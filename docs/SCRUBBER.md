@@ -11,6 +11,10 @@ The simulator (`lib/sim.mjs`) is already a scrubber: `simulate(…, { offsetMin 
 
 Nothing in `public/js/views/*` needs to know about replay. That also means the whole feature can be built and rehearsed against the simulator this week, and only the recording side is exercised for the first time on Nov 3.
 
+## Status (2026-10-25)
+
+Done: Supabase project provisioned through the Vercel Marketplace; schema applied (all nine tables, RLS select-only for the publishable key, heartbeat in the Realtime publication); `scripts/scraper.mjs` writing snapshots, events, race ticks (changes only), 5-minute keyframes, market ticks (changes only, 15-minute keep-alive), news items, posts, stream changes and the heartbeat; read-only site mode; paused banner; Realtime nudge with versioned refetches. Not yet built: `/api/timeline` bundle, the browser clock, the transport strip (steps 3-5).
+
 ## 0a. Architecture: one scraper on the owner's machine, a read-only site (decided 2026-10-25)
 
 ```

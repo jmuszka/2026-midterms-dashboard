@@ -3,6 +3,7 @@ import { app, $, esc, hub, loadApp, timeAgo, toast, subscribeEvents } from './co
 import { createWM } from './wm.js';
 import * as L from './layout.js';
 import { setupReader } from './reader.js';
+import { startLive } from './live.js';
 import balance from './views/balance.js';
 import map from './views/map.js';
 import chamber from './views/chamber.js';
@@ -64,5 +65,6 @@ async function main() {
     try { const b = JSON.parse(localStorage.getItem('us-dash-layout-v1-backup')); if (b) { L.apply(b); wm.help(false); toast('Restored your previous layout.'); } } catch {}
   });
   subscribeEvents(() => {}); // keep events flowing for toasts even when no feed window is open
+  startLive();
 }
 main().catch((e) => { $('#status').innerHTML = `<span class="warn">Start-up failed: ${esc(e.message)}</span>`; console.error(e); });

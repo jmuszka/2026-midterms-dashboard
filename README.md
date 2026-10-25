@@ -52,6 +52,8 @@ scripts/                 build-races, build-markets, build-geo, poller
 server.mjs               local server + background poll loop
 ```
 
+**Election night:** the owner's machine runs `node scripts/scraper.mjs` (the only writer to Supabase) and the deployed site runs with `READ_ONLY=1`, reading Supabase and never calling upstream sources. See AGENTS.md.
+
 Without any setup, read endpoints refresh from upstream when their copy is stale and the CDN shares each response between viewers, as the BC build did. For one shared copy and a complete event history across serverless instances, connect Supabase (run `db/schema.sql`, set the two env vars) and run a scheduler against `/api/poll` with `POLL_SECRET` set: `.github/workflows/poll.yml`, `npm run poller`, or Vercel Cron on the Pro plan. Vercel Hobby crons run only once a day.
 
 ## Deploy
