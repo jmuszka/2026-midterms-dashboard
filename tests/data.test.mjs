@@ -146,3 +146,9 @@ test('candidate name matching tolerates initials and suffixes', () => {
   assert.equal(matchCandidate('Shannon L. Taylor', list)?.party, 'DEM');
   assert.equal(matchCandidate('Nobody Else', list), null);
 });
+
+test('YouTube live embed page yields the live video id', async () => {
+  const { parseYouTubeEmbed } = await import('../lib/sources/streams.mjs');
+  assert.deepEqual(parseYouTubeEmbed(fx('youtube-embed-live.html')), { status: 'live', videoId: 'aF9neWULq64', title: 'LIVE: NBC News NOW', via: 'embed' });
+  assert.equal(parseYouTubeEmbed('<html>no player</html>'), null);
+});
