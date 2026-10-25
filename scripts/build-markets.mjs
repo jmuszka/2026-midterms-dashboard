@@ -86,7 +86,10 @@ for (const e of events) {
   let m, id = null;
   if (e.slug === 'which-party-will-win-the-senate-in-2026') { out.control.S.polymarket = polyMarkets(e); continue; }
   if (e.slug === 'which-party-will-win-the-house-in-2026') { out.control.H.polymarket = polyMarkets(e); continue; }
-  if (e.slug === 'balance-of-power-2026-midterms') { out.control.combo = { polymarket: polyMarkets(e) }; continue; }
+  if (e.slug === 'balance-of-power-2026-midterms') { // "D Senate, R House" -> party key "D/R" (Senate/House)
+    out.control.combo = { polymarket: polyMarkets(e).map((pm) => { const m2 = pm.label.match(/([DR]) Senate, ([DR]) House/); const sweep = /Democrats Sweep/i.test(pm.label) ? "D/D" : /Republicans Sweep/i.test(pm.label) ? "R/R" : null; return { ...pm, party: m2 ? `${m2[1]}/${m2[2]}` : sweep }; }) };
+    continue;
+  }
   if ((m = e.slug.match(/^([a-z-]+?)-senate-election-winner(?:-\d+)?$/))) {
     const st = byStateName[m[1].replace(/-/g, ' ')];
     if (st) id = raceIds.has(raceId('S', st)) ? raceId('S', st) : raceId('S', st, null, true);
@@ -111,7 +114,7 @@ for (const mk of pi.markets) {
   if (mk.contracts.some((c) => /%|\bby\b|margin/i.test(c.name))) continue; // margin brackets, not winner markets
   const contracts = mk.contracts.map((c) => ({ id: c.id, label: c.name, party: partyOf(c.name) || partyOf(c.shortName) }));
   if (/control the Senate/i.test(n)) { (out.control.S ||= {}).predictit = [{ market: mk.id, contracts }]; continue; }
-  if (/control the House/i.test(n)) { (out.control.H ||= {}).predictit = [{ market: mk.id, contracts }]; continue; }
+  if (/control the House|win the House in the 2026/i.test(n)) { (out.control.H ||= {}).predictit = [{ market: mk.id, contracts }]; continue; }
   let m, id = null;
   if ((m = n.match(/\b([A-Z]{2})-(\d{1,2}|AL)\b/)) && STATES[m[1]] && /House|district/i.test(n + mk.shortName)) id = raceId('H', m[1], m[2] === 'AL' ? 0 : +m[2]);
   else if ((m = n.match(/House (?:race|election) in ([A-Z][a-z]+(?: [A-Z][a-z]+)?)'s? (\d+)(?:st|nd|rd|th) District/)) && byStateName[m[1].toLowerCase()]) id = raceId('H', byStateName[m[1].toLowerCase()], +m[2]);
