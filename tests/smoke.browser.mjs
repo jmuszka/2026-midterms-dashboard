@@ -4,7 +4,7 @@
 // with no uncaught errors. Also exercises the launcher, a settings change and the share link.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
-const [out, base = 'http://localhost:8790'] = process.argv.slice(2);
+const [out, base = 'http://localhost:8787'] = process.argv.slice(2);
 const simAt = process.env.SIM_AT || 240;
 fs.mkdirSync(out, { recursive: true });
 fs.rmSync(`${out}/smoke-profile`, { recursive: true, force: true });

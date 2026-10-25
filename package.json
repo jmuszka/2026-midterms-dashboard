@@ -1,14 +1,21 @@
 {
-  "name": "bc-election-dashboard",
-  "version": "1.0.0",
+  "name": "us-midterms-dashboard",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "Live BC provincial election night dashboard: Elections BC results map, CBC live stream, news feed, and @JJ_McCullough on X.",
+  "description": "Live US midterm elections (Nov 3, 2026) dashboard: results, maps, seat charts, live feed, streams, news, pundits, Truth Social and prediction markets in a tiling window manager.",
   "scripts": {
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "dev": "STORE_FILE=.cache/store.json node server.mjs",
+    "test": "node --test tests/data.test.mjs",
+    "test:browser": "node tests/smoke.browser.mjs .cache/browser && node tests/wm.browser.mjs .cache/browser \"http://localhost:8787/?sim=1&simAt=240\"",
+    "build:races": "node scripts/build-races.mjs --refresh",
+    "build:markets": "node scripts/build-markets.mjs",
+    "build:geo": "node scripts/build-geo.mjs",
+    "poller": "node scripts/poller.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",

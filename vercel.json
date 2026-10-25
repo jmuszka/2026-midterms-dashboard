@@ -3,8 +3,9 @@
   "framework": null,
   "buildCommand": "",
   "outputDirectory": "public",
-  "functions": { "api/*.mjs": { "maxDuration": 30 } },
+  "functions": { "api/[route].mjs": { "maxDuration": 60 } },
   "headers": [
-    { "source": "/data/(.*)", "headers": [{ "key": "cache-control", "value": "public, max-age=86400" }] }
+    { "source": "/data/(.*)", "headers": [{ "key": "cache-control", "value": "public, max-age=86400, stale-while-revalidate=604800" }] },
+    { "source": "/js/(.*)", "headers": [{ "key": "cache-control", "value": "public, max-age=0, must-revalidate" }] }
   ]
 }

@@ -1,0 +1,24 @@
+# Election-night poller: calls the deployed /api/poll every 30 s.
+# Only useful once a shared store is configured (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in Vercel);
+# without one, every function instance refreshes inline from upstream and this is not needed.
+# GitHub's schedule minimum is 5 minutes, so each run loops for ~5 minutes.
+# Repo secrets: POLL_URL (https://<your-app>.vercel.app/api/poll) and POLL_SECRET.
+name: election-night-poll
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 22-23 3 11 *'   # Nov 3, 17:00-18:59 ET (UTC hours 22-23)
+    - cron: '*/5 0-12 4 11 *'    # Nov 4, 19:00 ET to 07:59 ET
+concurrency: { group: poll, cancel-in-progress: false }
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Poll every 30 s for ~5 minutes
+        env: { POLL_URL: '${{ secrets.POLL_URL }}', POLL_SECRET: '${{ secrets.POLL_SECRET }}' }
+        run: |
+          for i in $(seq 1 10); do
+            curl -sS -m 55 -H "Authorization: Bearer $POLL_SECRET" "$POLL_URL" | head -c 400; echo
+            sleep 30
+          done

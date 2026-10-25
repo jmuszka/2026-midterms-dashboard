@@ -1,6 +1,7 @@
 server.mjs
-README.md
-AGENTS.md
-CLAUDE.md
 tests
-.vercel
+scripts
+docs
+db
+.cache
+.github

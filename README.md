@@ -1,57 +1,78 @@
-# BC Election Night 2026 dashboard
+# Midterms 2026 Live
 
-Live dashboard for the October 24, 2026 B.C. provincial election.
+A live, customisable dashboard for the **US midterm elections of Tuesday 3 November 2026**: Senate, House and governor results, maps, seat charts, a live event feed, news streams, news, pundits, Trump's Truth Social posts and prediction markets. Everything sits in a Hyprland-style tiling window manager, and a whole layout can be shared as a link.
 
 ```
 npm install
-npm start          # local: http://localhost:8787
+npm start                 # http://localhost:8787  (polls every source in the background)
+open http://localhost:8787/?sim=1   # simulated election night at 30x speed, for trying every view
 ```
 
-## Deploy to Vercel
+## What's on screen
 
-The repo is already laid out for Vercel: `public/` is served as static files and each file in `api/` is a serverless function. No build step.
+Every window is an instance of a type with its own settings (the gear in its title bar). Open new ones from **Panels** (or Alt+R); presets replace the whole layout.
+
+| Window | What it shows | Data |
+|---|---|---|
+| Balance of power | Senate, House and governor seat bars: won, leading, not up, not reporting; majority line, net change, flips, market odds | results + `config/sources.json → balance` |
+| Results map | States (Senate, governor) or the 435 districts as drawn for 2026; colour by live result, ratings consensus, market odds, flips, or shift vs the 2024 presidential vote; zoom and pan | results, markets, `public/data/*` |
+| Chamber seats | Aerial hemicycle of all 100 Senate seats, 435 House seats or 50 governorships | results |
+| Live feed | Calls, flips, lead changes, vote batches, tight margins, market moves and poll closings, newest first; ticker mode; toasts for big calls | `/api/events` |
+| Race card | One race in depth: candidates, expected vote, every rater's rating, each market's odds, 2024 baseline, counties | results, manifest, markets |
+| Race browser | Every contest, filterable (competitive, toss-ups, counting, margin under 2, flips) and sortable | results, manifest |
+| Poll closings | 6 pm–1 am ET timeline, countdown, slow-count and runoff states | manifest, `config/states.json` |
+| Live stream | Carousel over ~34 channels (networks, independents, international, local); live status and the live video id resolved server-side; Twitch and Kick; paste any YouTube link | `/api/streams` |
+| News | Lanes: national, analysis, battleground states, race calls; click a headline for the reader window | RSS feeds in `config/sources.json` |
+| Social | Election analysts (Bluesky), Donald Trump on Truth Social, analysts on X (needs `X_BEARER_TOKEN`) | `/api/social?list=` |
+| Prediction markets | Senate and House control on Kalshi, Polymarket and PredictIt, 48-hour history, both-chambers combo, race odds | `/api/markets` |
+| Google Trends | What the US is searching | trending RSS |
+
+**Sharing:** the **Share** button copies a link whose `#l=` fragment carries the full layout and every window's settings. Your own layout is remembered in this browser.
+
+## Where the numbers come from
+
+Full research with URLs and verdicts: [`docs/RESEARCH.md`](docs/RESEARCH.md).
+
+- **Results and race calls:** CNN's results JSON (AP data) for every race, plus the official feeds from North Carolina, Virginia, Georgia, Colorado and Iowa, whose counts take over when they are ahead. **Calls are only shown when a source makes them.**
+- **Markets:** Kalshi, Polymarket and PredictIt public APIs, mapped to all 506 races by `scripts/build-markets.mjs`.
+- **Races, candidates, ratings:** Wikipedia's 2026 election and ratings pages plus The Downballot's 2024 presidential results on 2026 lines, compiled by `scripts/build-races.mjs`.
+- **Maps:** Census TIGERweb 120th-Congress districts (Missouri uses its 2022 lines, because the Census file still holds the blocked HB1 map), us-atlas states and counties, built by `scripts/build-geo.mjs`.
+
+## How it runs
 
 ```
-npx vercel login
+public/                  static site: index.html, style.css, js/ (ES modules, no build step), data/ (TopoJSON)
+api/[route].mjs          the one Vercel function; routes live in lib/routes.mjs
+lib/poll.mjs             the poller: runs due tasks, writes snapshots, diffs them into events
+lib/store.mjs            memory, file (STORE_FILE) or Supabase (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
+lib/sources/*.mjs        one adapter per upstream
+lib/sim.mjs              the simulated election night (?sim=1)
+config/                  races.json (generated), markets.json (generated), sources.json, presets.json, parties.json, states.json
+scripts/                 build-races, build-markets, build-geo, poller
+server.mjs               local server + background poll loop
+```
+
+Without any setup, read endpoints refresh from upstream when their copy is stale and the CDN shares each response between viewers, as the BC build did. For one shared copy and a complete event history across serverless instances, connect Supabase (run `db/schema.sql`, set the two env vars) and run a scheduler against `/api/poll` with `POLL_SECRET` set: `.github/workflows/poll.yml`, `npm run poller`, or Vercel Cron on the Pro plan. Vercel Hobby crons run only once a day.
+
+## Deploy
+
+```
 npx vercel --prod
 ```
 
-Accept the defaults when prompted (framework: Other, no build command). API responses carry `s-maxage` headers, so Vercel's CDN shares one upstream fetch per window across every viewer instead of hitting Elections BC per visitor.
+Optional environment variables: `X_BEARER_TOKEN` (X analysts list; billed per post read), `YOUTUBE_API_KEY` (viewer counts), `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (shared store), `POLL_SECRET` (protects `/api/poll`).
 
-## Panels
+## Tests
 
-The panels are windows in a Hyprland-style tiling window manager: dwindle tiling, workspaces, floating windows, a scratchpad, and Hyprland's default keybinds with **Alt** as the modifier. Press Alt+/ for the full list. See AGENTS.md for details.
+```
+npm test                      # offline: parsers on saved real responses, merge, differ, simulator, social
+npm start & npm run test:browser   # headless Chromium: every view, reader, share link, phone width, window manager
+```
 
+## Refreshing the generated config
 
-| Panel | Source | Refresh |
-|---|---|---|
-| Results map + seat projection | Elections BC election-night CSVs (`GE-2026-10-24_Candidate.csv`) on `electionsbcenr.blob.core.windows.net`; Elections BC updates them every ~3 min | 60 s |
-| CBC live stream | YouTube embed of CBC's *B.C. Votes 2026* stream (`youtube.videoId` in config); "Channel live" button switches to whatever the CBC News channel is streaming | — |
-| News | Google News RSS search for "BC election" + CBC British Columbia RSS, merged and de-duplicated | 120 s |
-| News reader window | Clicking a headline opens it in a pop-up reader view: `/api/article` decodes Google News redirect links, fetches the publisher page, and extracts the text with Mozilla Readability. Shown in a script-free sandboxed iframe. Sites that allow framing also get an "Original page" tab. Ctrl/Cmd-click opens the real site in a new tab | on demand, cached 15 min |
-| @JJ_McCullough on X | Server tries X's syndication endpoint and any `twitter.rssMirrors`; if those are blocked the page falls back to X's official embedded timeline widget | 120 s |
-
-Riding boundaries: BC Data Catalogue, *Provincial Electoral Districts – Electoral Boundaries Redistribution 2023* (`data/bc-electoral-districts-2023.geojson`, simplified).
-
-## X API (for the @JJ_McCullough panel)
-
-Without a token the panel falls back to X's embed widget, which X often blocks. With the official API:
-
-1. Sign in at https://console.x.com, create a Project and App, and buy a few dollars of credits (reads are pay-per-use).
-2. Copy the App's **Bearer Token** (Keys and tokens tab).
-3. Add it and redeploy:
-   ```
-   npx vercel env add X_BEARER_TOKEN production
-   npx vercel --prod
-   ```
-   Locally: `X_BEARER_TOKEN=... npm start`.
-
-The function polls every 2 minutes with `since_id`, so it only pays for posts it hasn't seen. Errors such as running out of credits show in the panel's tooltip while the last posts stay on screen.
-
-## Projection
-
-Elections BC does not call ridings. The "Projected" badge is an unofficial heuristic computed in `server.mjs` (`callRiding`) with thresholds in `config.json → projection`: a riding is projected when the runner-up would need more than 80% of the estimated remaining votes, or when the margin exceeds a threshold at a given share of ballot boxes reported. Ridings whose initial count is complete show "Elected · count complete". All numbers are preliminary initial-count figures; mail-in and absentee ballots are counted in the final count (Nov 6–10).
-
-## Config
-
-Everything lives in `config.json`: port, Elections BC event prefix, party colours, news feeds, X handle, YouTube video/channel, refresh intervals, projection thresholds. Restart the server after editing.
+```
+npm run build:races     # re-pull Wikipedia + Downballot (candidates and ratings change until election day)
+npm run build:markets   # re-map market ids (new House markets get listed)
+npm run build:geo       # only if district lines change
+```

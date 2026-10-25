@@ -2,6 +2,22 @@
 
 Written 2026-10-25. Election day is Tuesday 3 November 2026. This document turns the BC Election Night demo (git tag `bc-baseline`) into the "ultimate" US midterms second screen. Data-source facts live in `docs/RESEARCH.md`; this file is about what to build and in what order.
 
+## Status (2026-10-25, end of day)
+
+Days Oct 26 to Nov 1 of the build order below were completed in one session on Oct 25; what remains is the Nov 2 polish list and the Nov 3 runbook in AGENTS.md.
+
+| Area | State |
+|---|---|
+| Window instances, settings, presets, `#l=` share links | Done |
+| Store, poller, differ, events | Done (memory/file stores; Supabase supported, not provisioned) |
+| Results adapters | CNN, NC, VA, GA, CO, IA done; CA and the Cloudflare-blocked states not started |
+| Markets | Kalshi, Polymarket, PredictIt for all 506 races and both chambers |
+| Geometry | 2026 districts (Missouri on 2022 lines), states, counties |
+| Views | balance, map, chamber, feed, race card, race browser, timeline, stream carousel, news, social, markets, trends |
+| Simulation mode | Done (`?sim=1`), not in the original plan; added to build and rehearse views before real results exist |
+| Tests | offline data tests, browser smoke test, ported WM test |
+| Not done | short share links, Supabase Realtime push, CA adapter, county mini-map inside the race card (county table only) |
+
 ## 1. Vision
 
 One page, many windows, everything about the midterms in one place: live results across the Senate, House and governors; a national map, an aerial chamber view and a live event feed over the same data; a wall of free live streams; a news feed with reader mode; pundit feeds; a dedicated Trump/Truth Social feed; prediction-market odds; poll-closing timeline. Everything is config-driven, every window is an instance with its own settings, and a whole dashboard layout can be shared as a URL.

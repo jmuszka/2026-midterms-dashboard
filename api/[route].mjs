@@ -4,7 +4,8 @@ import { handle, cacheHeader } from '../lib/routes.mjs';
 
 export default async function handler(req, res) {
   const url = new URL(req.url, 'http://x');
-  const route = url.pathname.replace(/^\/api\//, '').split('/')[0];
+  // Vercel rewrites /api/x to /api/[route]?route=x; fall back to the path for other hosts
+  const route = url.searchParams.get('route') || url.pathname.replace(/^\/api\//, '').split('/')[0];
   const out = await handle({ route, query: url.searchParams, headers: req.headers });
   res.setHeader('content-type', 'application/json; charset=utf-8');
   res.setHeader('cache-control', cacheHeader(out.cache));
