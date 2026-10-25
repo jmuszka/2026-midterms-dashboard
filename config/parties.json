@@ -1,12 +1,88 @@
 {
-  "_comment": "Party ids used across every source adapter. 'match' lists lowercase labels/codes that map to the id. Colours validated for colour-blind separation on the dark surface (see AGENTS.md design notes) before changing.",
-  "parties": [
-    { "id": "DEM", "name": "Democratic", "short": "D", "color": "#3A7BE0", "match": ["d", "dem", "democratic", "democrat", "democratic party", "democratic-farmer-labor", "dfl", "democratic-npl"] },
-    { "id": "GOP", "name": "Republican", "short": "R", "color": "#E0453A", "match": ["r", "rep", "gop", "republican", "republican party"] },
-    { "id": "IND", "name": "Independent", "short": "I", "color": "#B48A2E", "match": ["i", "ind", "independent", "una", "unaffiliated", "nonpartisan", "no party", "npa", "forward", "independent-alliance"] },
-    { "id": "LIB", "name": "Libertarian", "short": "L", "color": "#9A7FD0", "match": ["l", "lib", "libertarian"] },
-    { "id": "GRN", "name": "Green", "short": "G", "color": "#3DA35D", "match": ["g", "gre", "grn", "green", "green party"] },
-    { "id": "OTH", "name": "Other", "short": "O", "color": "#7A838E", "match": [] }
-  ],
-  "caucus": { "_comment": "Independents who caucus with a party count toward that party's seat total.", "Angus King": "DEM", "Bernie Sanders": "DEM" }
+ "_comment": "Party ids used across every source adapter. 'match' lists lowercase labels/codes that map to the id. Mark colours: only DEM, IND and GOP get categorical hues (validated with the dataviz skill's validate_palette.js on #161b22 and #0e1116, seat-bar order D, I, R: all checks pass). Minor parties fold into the neutral 'other' mark and are always identified by a text label. Re-run the validator before changing any of these.",
+ "parties": [
+  {
+   "id": "DEM",
+   "name": "Democratic",
+   "short": "D",
+   "color": "#3A7BE0",
+   "match": [
+    "d",
+    "dem",
+    "democratic",
+    "democrat",
+    "democratic party",
+    "democratic-farmer-labor",
+    "dfl",
+    "democratic-npl"
+   ]
+  },
+  {
+   "id": "GOP",
+   "name": "Republican",
+   "short": "R",
+   "color": "#E0453A",
+   "match": [
+    "r",
+    "rep",
+    "gop",
+    "republican",
+    "republican party"
+   ]
+  },
+  {
+   "id": "IND",
+   "name": "Independent",
+   "short": "I",
+   "color": "#2BA6A0",
+   "match": [
+    "i",
+    "ind",
+    "independent",
+    "una",
+    "unaffiliated",
+    "nonpartisan",
+    "no party",
+    "npa",
+    "forward",
+    "independent-alliance"
+   ]
+  },
+  {
+   "id": "LIB",
+   "name": "Libertarian",
+   "short": "L",
+   "color": "#7A838E",
+   "match": [
+    "l",
+    "lib",
+    "libertarian"
+   ]
+  },
+  {
+   "id": "GRN",
+   "name": "Green",
+   "short": "G",
+   "color": "#7A838E",
+   "match": [
+    "g",
+    "gre",
+    "grn",
+    "green",
+    "green party"
+   ]
+  },
+  {
+   "id": "OTH",
+   "name": "Other",
+   "short": "O",
+   "color": "#7A838E",
+   "match": []
+  }
+ ],
+ "caucus": {
+  "_comment": "Independents who caucus with a party count toward that party's seat total.",
+  "Angus King": "DEM",
+  "Bernie Sanders": "DEM"
+ }
 }

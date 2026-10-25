@@ -1,85 +1,55 @@
-/* Hyprland-style tiling window manager for the dashboard panels.
+/* Hyprland-style tiling window manager (ES module, no dependencies).
  *
- * Mirrors Hyprland's defaults: dwindle layout (each new window splits the focused
- * or hovered one along its longer side), gaps_in 5 / gaps_out 20, border 2px with the
- * cyan→green active gradient, rounding 10, focus follows mouse, workspaces 1–9 that
- * slide horizontally, a special (scratchpad) workspace, floating and fullscreen
- * windows, mod+LMB drag to move, mod+RMB drag to resize, and resize by dragging the
- * gaps. Super is held by the user's real compositor, so the main modifier is Alt
- * (or Ctrl+Alt).
+ * Mirrors Hyprland's defaults: dwindle layout (a new window splits the focused or
+ * hovered one along its longer side), gaps_in 5 / gaps_out 20, 2px border with the
+ * cyan→green active gradient, rounding 10, focus follows mouse (on real movement
+ * only), workspaces 1–9 that slide horizontally, a special (scratchpad) workspace,
+ * floating and fullscreen windows, mod+LMB drag to move, mod+RMB drag to resize,
+ * and resize by dragging the gaps. Super belongs to the user's real compositor,
+ * so the main modifier is Alt (or Ctrl+Alt).
+ *
+ * Windows are dynamic: the layout layer (layout.js) creates window elements for
+ * typed instances and registers them with add(); closing one calls onClose so the
+ * instance is destroyed. Windows on other workspaces are moved with transform,
+ * never re-parented, because moving an iframe in the DOM reloads it.
  */
-(() => {
-  const CFG = {
-    gapsIn: 5,            // per side, like Hyprland: 10px between windows
-    gapsOut: 20,
-    border: 2,
-    rounding: 10,
-    resizeStep: 40,       // px per keyboard resize step
-    minRatio: 0.08,
-    floatSize: [0.5, 0.6],
-  };
-  const NAMES = {
-    seats: 'Seat projection', map: 'Results map', detail: 'Riding detail', ridings: 'All ridings',
-    video: 'CBC live stream', news: 'News', x: 'X feed',
-  };
-  const KEY = 'bc-dash-wm-v1';
-  const desk = document.getElementById('desktop');
-  const wins = Object.fromEntries([...desk.querySelectorAll('.win')].map((el) => [el.dataset.tile, el]));
+const CFG = { gapsIn: 5, gapsOut: 20, resizeStep: 40, minRatio: 0.08, floatSize: [0.5, 0.6] };
+const INTERACTIVE = 'input, textarea, select, button, a, label, summary, form, [contenteditable], .no-drag';
+const HEADER_DRAG_THRESHOLD = 5;
+
+/* ---------- tree helpers ---------- */
+export const leaf = (id) => ({ id });
+export const split = (dir, ratio, a, b) => ({ dir, ratio, a, b }); // 'h' = side by side, 'v' = stacked
+export const leaves = (n) => (!n ? [] : n.id ? [n.id] : [...leaves(n.a), ...leaves(n.b)]);
+function without(n, id) {
+  if (!n) return null;
+  if (n.id) return n.id === id ? null : n;
+  const a = without(n.a, id), b = without(n.b, id);
+  if (!a) return b;
+  if (!b) return a;
+  return { ...n, a, b };
+}
+function replace(n, id, fn) {
+  if (!n) return n;
+  if (n.id) return n.id === id ? fn(n) : n;
+  return { ...n, a: replace(n.a, id, fn), b: replace(n.b, id, fn) };
+}
+function path(n, id, acc = []) {
+  if (!n || n.id) return n?.id === id ? acc : null;
+  return path(n.a, id, [...acc, { node: n, side: 'a' }]) || path(n.b, id, [...acc, { node: n, side: 'b' }]);
+}
+
+export function createWM({ desk, title = (id) => id, onClose = () => {}, onChange = () => {}, launcherItems = () => [], onLaunch = () => {}, helpExtra = '' }) {
   const $ = (s) => document.querySelector(s);
-
-  /* ---------- tree helpers ---------- */
-  const leaf = (id) => ({ id });
-  const split = (dir, ratio, a, b) => ({ dir, ratio, a, b }); // 'h' = side by side, 'v' = stacked
-  const DEFAULT = () => ({
-    ws: {
-      1: split('h', 0.5,
-        split('v', 0.24, leaf('seats'), leaf('map')),
-        split('v', 0.56, leaf('video'), split('h', 0.5, leaf('news'), leaf('x')))),
-      2: split('h', 0.62, leaf('ridings'), leaf('detail')),
-    },
-    special: null,
-    floating: {},        // id -> { ws, x, y, w, h }  (x/y/w/h as fractions of the desktop)
-    active: 1,
-    focus: 'map',
-    lastFocus: {},       // ws -> id
-    mod: 'alt',
-  });
-  const leaves = (n) => (!n ? [] : n.id ? [n.id] : [...leaves(n.a), ...leaves(n.b)]);
-  function without(n, id) {
-    if (!n) return null;
-    if (n.id) return n.id === id ? null : n;
-    const a = without(n.a, id), b = without(n.b, id);
-    if (!a) return b;
-    if (!b) return a;
-    return { ...n, a, b };
-  }
-  function replace(n, id, fn) {
-    if (!n) return n;
-    if (n.id) return n.id === id ? fn(n) : n;
-    return { ...n, a: replace(n.a, id, fn), b: replace(n.b, id, fn) };
-  }
-  function path(n, id, acc = []) { // [{node, side}] from root down to the leaf's parent
-    if (!n || n.id) return n?.id === id ? acc : null;
-    return path(n.a, id, [...acc, { node: n, side: 'a' }]) || path(n.b, id, [...acc, { node: n, side: 'b' }]);
-  }
-  function mapNodes(n, fn) { if (n && !n.id) { fn(n); mapNodes(n.a, fn); mapNodes(n.b, fn); } }
-
-  /* ---------- state ---------- */
-  let S;
-  try { S = JSON.parse(localStorage.getItem(KEY)); } catch { S = null; }
-  const valid = (s) => s && s.ws && Object.keys(NAMES).every((id) => true) && typeof s.active === 'number';
-  if (!valid(S)) S = DEFAULT();
-  S = { ...DEFAULT(), ...S };
-  // drop unknown ids, keep everything else
-  for (const k of Object.keys(S.ws)) for (const id of leaves(S.ws[k])) if (!wins[id]) S.ws[k] = without(S.ws[k], id);
-  const R = { specialOpen: false, fullscreen: null, rects: {}, nodeRects: new Map(), dividers: [], drag: null };
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+  const wins = new Map();
+  let S = { ws: { 1: null }, special: null, floating: {}, active: 1, focus: null, lastFocus: {}, mod: 'alt' };
+  const R = { specialOpen: false, fullscreen: null, rects: {}, nodeRects: new Map(), dividers: [], drag: null, pending: null };
 
   function where(id) {
     for (const k of Object.keys(S.ws)) if (leaves(S.ws[k]).includes(id)) return { kind: 'tiled', ws: +k };
     if (leaves(S.special).includes(id)) return { kind: 'special' };
     if (S.floating[id]) return { kind: 'float', ws: S.floating[id].ws };
-    return null; // closed
+    return null;
   }
   function detach(id) {
     for (const k of Object.keys(S.ws)) S.ws[k] = without(S.ws[k], id);
@@ -134,7 +104,7 @@
       const out = {};
       layout(S.ws[k], A, out, k === S.active && !R.specialOpen);
       for (const [id, r] of Object.entries(out)) place(id, r, (k - S.active) * A.W, 'tiled');
-      Object.assign(R.rects, k === S.active ? out : {});
+      if (k === S.active) Object.assign(R.rects, out);
     }
     const sp = {};
     layout(S.special, A, sp, R.specialOpen);
@@ -145,22 +115,28 @@
       place(id, r, (f.ws - S.active) * A.W, 'float', z++);
       if (f.ws === S.active) R.rects[id] = r;
     }
-    for (const [id, el] of Object.entries(wins)) {
+    const barH = desk.getBoundingClientRect().top + scrollY; // fullscreen also covers the bar and any banner
+    for (const [id, el] of wins) {
       const w = where(id);
       el.classList.toggle('closed', !w);
       el.classList.toggle('active', id === S.focus && !!w);
       el.classList.toggle('fullscreen', id === R.fullscreen);
       el.classList.toggle('offscreen', !!w && !visible(id));
-      if (id === R.fullscreen) {
-        Object.assign(el.style, { left: '0px', top: `${-$('#bar').offsetHeight}px`, width: `${A.W}px`, height: `${A.H + $('#bar').offsetHeight}px`, transform: 'none', zIndex: 60 });
-      }
+      if (id === R.fullscreen) Object.assign(el.style, { left: '0px', top: `${-barH}px`, width: `${A.W}px`, height: `${A.H + barH}px`, transform: 'none', zIndex: 60 });
+      el.style.order = String(order(id));
     }
     document.body.classList.toggle('special-open', R.specialOpen);
     renderBar();
-    save();
+    onChange(S);
+  }
+  // stacking order for the phone layout: workspace, then position in the tree
+  function order(id) {
+    let n = 0;
+    for (const k of Object.keys(S.ws).sort((a, b) => a - b)) { const l = leaves(S.ws[k]); const i = l.indexOf(id); if (i >= 0) return n + i; n += l.length; }
+    return 900;
   }
   function place(id, r, offsetX, kind, z) {
-    const el = wins[id]; if (!el) return;
+    const el = wins.get(id); if (!el) return;
     Object.assign(el.style, {
       left: `${r.x}px`, top: `${r.y}px`, width: `${Math.max(40, r.w)}px`, height: `${Math.max(40, r.h)}px`,
       transform: kind === 'special-hidden' ? 'translateY(-40px) scale(.96)' : `translateX(${offsetX}px)`,
@@ -173,34 +149,29 @@
     if (w.kind === 'special') return R.specialOpen;
     return w.ws === S.active;
   }
-  const onScreen = () => Object.keys(wins).filter((id) => visible(id) && (!R.specialOpen || where(id).kind === 'special'));
+  const onScreen = () => [...wins.keys()].filter((id) => visible(id) && (!R.specialOpen || where(id).kind === 'special'));
 
   /* ---------- bar ---------- */
   function renderBar() {
     const used = new Set(Object.keys(S.ws).filter((k) => leaves(S.ws[k]).length).map(Number));
     Object.values(S.floating).forEach((f) => used.add(f.ws));
     used.add(S.active);
-    const list = [...used].sort((a, b) => a - b);
-    $('#workspaces').innerHTML = list.map((n) => `<button type="button" data-ws="${n}" class="${n === S.active && !R.specialOpen ? 'on' : ''}${leaves(S.ws[n]).length || Object.values(S.floating).some((f) => f.ws === n) ? ' used' : ''}" title="Workspace ${n}">${n}</button>`).join('')
+    $('#workspaces').innerHTML = [...used].sort((a, b) => a - b).map((n) => `<button type="button" data-ws="${n}" class="${n === S.active && !R.specialOpen ? 'on' : ''}${leaves(S.ws[n]).length || Object.values(S.floating).some((f) => f.ws === n) ? ' used' : ''}" title="Workspace ${n}">${n}</button>`).join('')
       + (leaves(S.special).length ? `<button type="button" data-ws="special" class="special${R.specialOpen ? ' on' : ''}" title="Special workspace (mod+S)">S</button>` : '');
-    $('#win-title').textContent = S.focus && visible(S.focus) ? NAMES[S.focus] : '';
+    $('#win-title').textContent = S.focus && visible(S.focus) ? title(S.focus) : '';
   }
   $('#workspaces').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-ws]'); if (!b) return;
     if (b.dataset.ws === 'special') toggleSpecial(); else workspace(+b.dataset.ws);
   });
-  const clock = () => { $('#clock').textContent = new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Vancouver' }) + ' PT'; };
-  clock(); setInterval(clock, 10000);
 
   /* ---------- dispatchers (Hyprland names) ---------- */
   function focus(id) {
-    if (!id || !wins[id]) return;
+    if (!id || !wins.has(id)) return;
     S.focus = id;
     const w = where(id);
-    if (w?.kind !== 'special' && w) S.lastFocus[w.ws] = id;
-    if (w?.kind === 'float') { // raise
-      const f = S.floating[id]; delete S.floating[id]; S.floating[id] = f;
-    }
+    if (w && w.kind !== 'special') S.lastFocus[w.ws] = id;
+    if (w?.kind === 'float') { const f = S.floating[id]; delete S.floating[id]; S.floating[id] = f; } // raise
     render();
   }
   function neighbor(dir) {
@@ -215,9 +186,7 @@
       if (!ok) continue;
       const horiz = dir === 'l' || dir === 'r';
       const overlap = horiz ? Math.min(r.y + r.h, from.y + from.h) - Math.max(r.y, from.y) : Math.min(r.x + r.w, from.x + from.w) - Math.max(r.x, from.x);
-      const dist = horiz ? Math.abs(rx - cx) : Math.abs(ry - cy);
-      const off = horiz ? Math.abs(ry - cy) : Math.abs(rx - cx);
-      const score = dist + off * 0.5 - (overlap > 0 ? 1e5 : 0);
+      const score = (horiz ? Math.abs(rx - cx) : Math.abs(ry - cy)) + (horiz ? Math.abs(ry - cy) : Math.abs(rx - cx)) * 0.5 - (overlap > 0 ? 1e5 : 0);
       if (score < bestScore) { bestScore = score; best = id; }
     }
     return best;
@@ -238,6 +207,7 @@
     if (key === 'special') S.special = fix(swap(S.special)); else S.ws[key] = fix(swap(S.ws[key]));
     render();
   }
+  const clampRatio = (x) => Math.min(1 - CFG.minRatio, Math.max(CFG.minRatio, x));
   function resizeactive(dx, dy) {
     const id = S.focus, w = where(id); if (!w) return;
     if (w.kind === 'float') {
@@ -253,62 +223,50 @@
         const { node, side } = p[i];
         if (node.dir !== d) continue;
         const r = R.nodeRects.get(node); if (!r) break;
-        const size = (d === 'h' ? r.w : r.h) - CFG.gapsIn * 2;
-        node.ratio = clampRatio(node.ratio + (side === 'a' ? 1 : -1) * delta / size);
+        node.ratio = clampRatio(node.ratio + (side === 'a' ? 1 : -1) * delta / ((d === 'h' ? r.w : r.h) - CFG.gapsIn * 2));
         break;
       }
     }
     render();
   }
-  const clampRatio = (x) => Math.min(1 - CFG.minRatio, Math.max(CFG.minRatio, x));
   function togglesplit() {
     const w = where(S.focus); if (!w || w.kind === 'float') return;
-    const tree = w.kind === 'special' ? S.special : S.ws[w.ws];
-    const p = path(tree, S.focus); if (!p?.length) return;
+    const p = path(w.kind === 'special' ? S.special : S.ws[w.ws], S.focus); if (!p?.length) return;
     const node = p[p.length - 1].node; node.dir = node.dir === 'h' ? 'v' : 'h';
     render();
   }
   function togglefloating() {
     const id = S.focus, w = where(id); if (!w) return;
-    if (w.kind === 'float') {
-      delete S.floating[id];
-      insertTiled(S.active, id, null, null);
-    } else {
-      const [fw, fh] = CFG.floatSize;
-      detach(id);
-      S.floating[id] = { ws: S.active, x: (1 - fw) / 2, y: (1 - fh) / 2, w: fw, h: fh };
-    }
+    if (w.kind === 'float') { delete S.floating[id]; insertTiled(S.active, id, null, null); }
+    else { const [fw, fh] = CFG.floatSize; detach(id); S.floating[id] = { ws: S.active, x: (1 - fw) / 2, y: (1 - fh) / 2, w: fw, h: fh }; }
     render();
   }
   function fullscreen() { R.fullscreen = R.fullscreen === S.focus ? null : S.focus; render(); }
-  function killactive() {
-    const id = S.focus; if (!where(id)) return;
+  function killactive(id = S.focus) {
+    if (!where(id)) return;
     const pos = R.rects[id];
     detach(id);
     if (R.fullscreen === id) R.fullscreen = null;
-    const v = wins[id].querySelector('iframe#video');
-    if (v) { v.dataset.src = v.src; v.src = 'about:blank'; }
-    render();
+    remove(id);
+    onClose(id);
     const rest = onScreen();
     if (rest.length) {
-      // focus whatever now occupies the closed window's centre
       const c = pos && { x: pos.x + pos.w / 2, y: pos.y + pos.h / 2 };
       focus(rest.find((r) => c && inRect(c, R.rects[r])) || rest[0]);
     } else { S.focus = null; render(); }
   }
-  function open(id) {
+  // add a newly created window element and tile it on the current workspace (or special)
+  function open(id, el, { workspace: wsN, floating } = {}) {
+    if (el && !wins.has(id)) add(id, el);
     const w = where(id);
-    if (w) { // already open: go to it
-      if (w.kind === 'special') { R.specialOpen = true; } else if (w.ws !== S.active) S.active = w.ws;
-      return focus(id);
-    }
-    if (R.specialOpen) insertTiled('special', id, S.focus, null); else insertTiled(S.active, id, S.focus, null);
-    const v = wins[id].querySelector('iframe#video');
-    if (v?.dataset.src) { v.src = v.dataset.src; delete v.dataset.src; }
-    wins[id].classList.add('opening');
-    setTimeout(() => wins[id].classList.remove('opening'), 30);
+    if (w) { if (w.kind === 'special') R.specialOpen = true; else if (w.ws !== S.active) S.active = w.ws; return focus(id); }
+    if (floating) { const [fw, fh] = CFG.floatSize; S.floating[id] = { ws: S.active, x: (1 - fw) / 2, y: (1 - fh) / 2, w: fw, h: fh }; }
+    else if (R.specialOpen) insertTiled('special', id, S.focus, null);
+    else insertTiled(wsN || S.active, id, S.focus, null);
+    const e = wins.get(id);
+    e.classList.add('opening');
+    setTimeout(() => e.classList.remove('opening'), 30);
     focus(id);
-    if (id === 'map' && typeof paintMap === 'function') paintMap();
   }
   function workspace(n) {
     if (n < 1 || n > 9) return;
@@ -340,17 +298,26 @@
   }
   function cycleWorkspace(d) {
     const used = [...new Set([...Object.keys(S.ws).filter((k) => leaves(S.ws[k]).length).map(Number), S.active])].sort((a, b) => a - b);
-    const i = used.indexOf(S.active);
-    workspace(used[(i + d + used.length) % used.length]);
+    workspace(used[(used.indexOf(S.active) + d + used.length) % used.length]);
   }
 
+  /* ---------- window registry ---------- */
+  function add(id, el) {
+    el.dataset.win = id;
+    el.classList.add('win');
+    desk.appendChild(el);
+    wins.set(id, el);
+    // the pointer entering an iframe gives no pointermove to this page, so catch the iframe's own enter
+    el.addEventListener('pointerenter', (e) => { if (e.target.tagName === 'IFRAME' && !R.drag && S.focus !== id && visible(id)) { S.focus = id; render(); } }, true);
+  }
+  function remove(id) { const el = wins.get(id); if (el) el.remove(); wins.delete(id); }
+
   /* ---------- keyboard ---------- */
-  // Alt mode: Alt (+Ctrl for keyboard resize). Ctrl+Alt mode: both required.
   const isMod = (e) => e.altKey && !e.metaKey && (S.mod !== 'ctrlalt' || e.ctrlKey);
   const ARROWS = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd' };
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Alt') { document.body.classList.add('mod-down'); if (S.mod === 'alt') e.preventDefault(); return; }
-    if (!$('#launcher').hidden || !$('#help').hidden) return; // overlays handle their own keys
+    if (!$('#launcher').hidden || !$('#help').hidden) return;
     if (!isMod(e)) return;
     const c = e.code, dir = ARROWS[e.key];
     let handled = true;
@@ -368,62 +335,42 @@
     else handled = false;
     if (handled) { e.preventDefault(); e.stopPropagation(); }
   }, true);
-  document.addEventListener('keyup', (e) => {
-    if (e.key === 'Alt') { document.body.classList.remove('mod-down'); if (S.mod === 'alt') e.preventDefault(); }
-  }, true);
+  document.addEventListener('keyup', (e) => { if (e.key === 'Alt') { document.body.classList.remove('mod-down'); if (S.mod === 'alt') e.preventDefault(); } }, true);
   addEventListener('blur', () => document.body.classList.remove('mod-down'));
 
   /* ---------- mouse ---------- */
   const inRect = (p, r) => r && p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
   const local = (e) => { const b = desk.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
-  const dividerAt = (p) => R.dividers.find((d) => d.dir === 'h'
+  const dividerAt = (p) => R.dividers.find((d) => (d.dir === 'h'
     ? p.x >= d.pos - 3 && p.x <= d.pos + d.g + 3 && p.y >= d.rect.y && p.y <= d.rect.y + d.rect.h
-    : p.y >= d.pos - 3 && p.y <= d.pos + d.g + 3 && p.x >= d.rect.x && p.x <= d.rect.x + d.rect.w);
+    : p.y >= d.pos - 3 && p.y <= d.pos + d.g + 3 && p.x >= d.rect.x && p.x <= d.rect.x + d.rect.w));
+  const narrow = () => matchMedia('(max-width: 900px)').matches;
 
-  // focus follows mouse (Hyprland follow_mouse = 1): only on real movement, so a
-  // layout change under a still cursor (float, close, swap) never steals focus.
+  // focus follows mouse (follow_mouse = 1) only on real movement: Chrome fires
+  // pointer events when the layout changes under a still cursor.
   let lastXY = '';
   document.addEventListener('pointermove', (e) => {
     const xy = `${e.clientX},${e.clientY}`; const moved = xy !== lastXY; lastXY = xy;
+    if (document.activeElement?.tagName === 'IFRAME') { document.activeElement.blur(); window.focus(); } // keep binds working after clicking into an iframe
     if (R.drag || !moved) return;
     const el = e.target.closest?.('.win'); if (!el) return;
-    const id = el.dataset.tile;
+    const id = el.dataset.win;
     if (S.focus !== id && visible(id) && !(R.specialOpen && where(id)?.kind !== 'special')) { S.focus = id; const w = where(id); if (w && w.kind !== 'special') S.lastFocus[w.ws] = id; render(); }
   });
-  // the pointer entering an iframe gives no pointermove to this page, so catch the iframe element's own enter
-  for (const [id, el] of Object.entries(wins)) el.querySelectorAll('iframe').forEach((f) => f.addEventListener('pointerenter', (e) => {
-    if (!R.drag && S.focus !== id && visible(id)) { S.focus = id; render(); }
-  }));
-  // keep binds working after clicking into an iframe: when the pointer leaves it, take focus back
-  document.addEventListener('pointermove', () => { if (document.activeElement?.tagName === 'IFRAME') { document.activeElement.blur(); window.focus(); } });
-
   desk.addEventListener('pointermove', (e) => {
     if (R.drag) return;
     const d = e.target === desk ? dividerAt(local(e)) : null;
     desk.style.cursor = d ? (d.dir === 'h' ? 'col-resize' : 'row-resize') : '';
   });
   desk.addEventListener('contextmenu', (e) => { if (isMod(e) || R.drag) e.preventDefault(); });
-
   desk.addEventListener('pointerdown', (e) => {
     const p = local(e);
     const winEl = e.target.closest('.win');
-    // 1. drag the gap between two tiled windows (resize_on_border)
-    if (e.target === desk && e.button === 0) {
-      const d = dividerAt(p); if (!d) return;
-      e.preventDefault();
-      startDrag(e, { type: 'divider', d });
-      return;
-    }
+    if (e.target === desk && e.button === 0) { const d = dividerAt(p); if (!d) return; e.preventDefault(); startDrag(e, { type: 'divider', d }); return; }
     if (!winEl) return;
-    const id = winEl.dataset.tile;
-    if (where(id)?.kind === 'float') focus(id); // click raises a floating window
-    // 2. plain LMB on a title bar: arm a move that starts once the pointer travels a few px,
-    //    so clicks on the header's own buttons, links and inputs keep working
-    if (!isMod(e) && e.button === 0 && e.target.closest('.panel-head') && !e.target.closest(INTERACTIVE) && !narrow()) {
-      R.pending = { id, start: p, pointerId: e.pointerId };
-      return;
-    }
-    // 3. mod + LMB move, mod + RMB resize (Hyprland bindm)
+    const id = winEl.dataset.win;
+    if (where(id)?.kind === 'float') focus(id);
+    if (!isMod(e) && e.button === 0 && e.target.closest('.panel-head') && !e.target.closest(INTERACTIVE) && !narrow()) { R.pending = { id, start: p }; return; }
     if (!isMod(e) || (e.button !== 0 && e.button !== 2)) return;
     e.preventDefault(); e.stopPropagation();
     focus(id);
@@ -433,17 +380,9 @@
       const w = where(id), tree = w.kind === 'special' ? S.special : S.ws[w.ws];
       const corner = { right: p.x > r.x + r.w / 2, bottom: p.y > r.y + r.h / 2 };
       const pick = (dir, wantSide) => (path(tree, id) || []).slice().reverse().find((s) => s.node.dir === dir && s.side === wantSide);
-      startDrag(e, {
-        type: 'resize', id, r, start: p, kind: w.kind, corner,
-        hx: w.kind !== 'float' && pick('h', corner.right ? 'a' : 'b'),
-        vy: w.kind !== 'float' && pick('v', corner.bottom ? 'a' : 'b'),
-      });
+      startDrag(e, { type: 'resize', id, r, start: p, kind: w.kind, corner, hx: w.kind !== 'float' && pick('h', corner.right ? 'a' : 'b'), vy: w.kind !== 'float' && pick('v', corner.bottom ? 'a' : 'b') });
     }
   }, true);
-
-  const INTERACTIVE = 'input, textarea, select, button, a, label, summary, form, [contenteditable]';
-  const narrow = () => matchMedia('(max-width: 900px)').matches;
-  const HEADER_DRAG_THRESHOLD = 5;
   document.addEventListener('pointermove', (e) => {
     const pd = R.pending; if (!pd || R.drag) return;
     const p = local(e);
@@ -461,11 +400,10 @@
     R.drag = drag;
     desk.setPointerCapture(e.pointerId);
     document.body.classList.add('wm-dragging');
-    if (drag.type === 'move') wins[drag.id].classList.add('dragging');
+    if (drag.type === 'move') wins.get(drag.id).classList.add('dragging');
     if (drag.hx) drag.hx0 = drag.hx.node.ratio;
     if (drag.vy) drag.vy0 = drag.vy.node.ratio;
-    if (drag.type === 'resize' && drag.kind === 'float') drag.f0 = { ...S.floating[drag.id] };
-    if (drag.type === 'move' && drag.kind === 'float') drag.f0 = { ...S.floating[drag.id] };
+    if (drag.kind === 'float') drag.f0 = { ...S.floating[drag.id] };
   }
   desk.addEventListener('pointermove', (e) => {
     const d = R.drag; if (!d) return;
@@ -477,7 +415,7 @@
     } else if (d.type === 'move') {
       const dx = p.x - d.start.x, dy = p.y - d.start.y;
       if (d.kind === 'float') { S.floating[d.id].x = d.f0.x + dx / A.W; S.floating[d.id].y = d.f0.y + dy / A.H; render(); }
-      else { const el = wins[d.id]; el.style.left = `${d.r.x + dx}px`; el.style.top = `${d.r.y + dy}px`; }
+      else { const el = wins.get(d.id); el.style.left = `${d.r.x + dx}px`; el.style.top = `${d.r.y + dy}px`; }
     } else if (d.type === 'resize') {
       const dx = p.x - d.start.x, dy = p.y - d.start.y;
       if (d.kind === 'float') {
@@ -488,8 +426,7 @@
         for (const [s, delta, r0] of [[d.hx, dx, d.hx0], [d.vy, dy, d.vy0]]) {
           if (!s) continue;
           const nr = R.nodeRects.get(s.node); if (!nr) continue;
-          const size = (s.node.dir === 'h' ? nr.w : nr.h) - CFG.gapsIn * 2;
-          s.node.ratio = clampRatio(r0 + delta / size);
+          s.node.ratio = clampRatio(r0 + delta / ((s.node.dir === 'h' ? nr.w : nr.h) - CFG.gapsIn * 2));
         }
       }
       render();
@@ -500,15 +437,11 @@
     R.drag = null;
     document.body.classList.remove('wm-dragging');
     if (d.type === 'move') {
-      wins[d.id].classList.remove('dragging');
+      wins.get(d.id)?.classList.remove('dragging');
       if (d.kind !== 'float') {
         const p = local(e);
         const target = onScreen().find((id) => id !== d.id && where(id)?.kind !== 'float' && inRect(p, R.rects[id]));
-        if (target) {
-          const key = d.kind === 'special' ? 'special' : S.active;
-          detach(d.id);
-          insertTiled(key, d.id, target, p);
-        }
+        if (target) { const key = d.kind === 'special' ? 'special' : S.active; detach(d.id); insertTiled(key, d.id, target, p); }
       }
     }
     render();
@@ -525,27 +458,25 @@
     $('#launcher-input').value = ''; sel = 0; fillLauncher();
     $('#launcher-input').focus();
   }
-  function launcherItems() {
-    const q = $('#launcher-input').value.toLowerCase();
-    return Object.entries(NAMES).filter(([, n]) => n.toLowerCase().includes(q)).map(([id, n]) => {
-      const w = where(id);
-      const loc = !w ? 'closed' : w.kind === 'special' ? 'special' : w.kind === 'float' ? `workspace ${w.ws} · floating` : `workspace ${w.ws}`;
-      return { id, n, loc };
-    });
-  }
+  const items = () => launcherItems($('#launcher-input').value.trim().toLowerCase(), (id) => {
+    const w = where(id);
+    return !w ? 'closed' : w.kind === 'special' ? 'special' : w.kind === 'float' ? `workspace ${w.ws} · floating` : `workspace ${w.ws}`;
+  });
   function fillLauncher() {
-    const items = launcherItems(); sel = Math.min(sel, Math.max(0, items.length - 1));
-    $('#launcher-list').innerHTML = items.map((it, i) => `<li role="option" data-id="${it.id}" class="${i === sel ? 'sel' : ''}"><span>${it.n}</span><small>${it.loc}</small></li>`).join('') || '<li class="muted">No match</li>';
+    const list = items(); sel = Math.min(sel, Math.max(0, list.length - 1));
+    $('#launcher-list').innerHTML = list.map((it, i) => `${it.group && (i === 0 || list[i - 1].group !== it.group) ? `<li class="grp">${it.group}</li>` : ''}<li role="option" data-i="${i}" class="${i === sel ? 'sel' : ''}"><span>${it.label}</span><small>${it.sub || ''}</small></li>`).join('') || '<li class="muted">No match</li>';
+    $('#launcher-list li.sel')?.scrollIntoView({ block: 'nearest' });
   }
+  const choose = (i) => { const it = items()[i]; if (!it) return; launcher(false); onLaunch(it); };
   $('#launcher-input').addEventListener('input', () => { sel = 0; fillLauncher(); });
   $('#launcher-input').addEventListener('keydown', (e) => {
-    const items = launcherItems();
-    if (e.key === 'ArrowDown') { sel = (sel + 1) % Math.max(1, items.length); fillLauncher(); e.preventDefault(); }
-    else if (e.key === 'ArrowUp') { sel = (sel - 1 + items.length) % Math.max(1, items.length); fillLauncher(); e.preventDefault(); }
-    else if (e.key === 'Enter') { if (items[sel]) { launcher(false); open(items[sel].id); } e.preventDefault(); }
+    const n = Math.max(1, items().length);
+    if (e.key === 'ArrowDown') { sel = (sel + 1) % n; fillLauncher(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { sel = (sel - 1 + n) % n; fillLauncher(); e.preventDefault(); }
+    else if (e.key === 'Enter') { choose(sel); e.preventDefault(); }
     else if (e.key === 'Escape') launcher(false);
   });
-  $('#launcher-list').addEventListener('click', (e) => { const li = e.target.closest('li[data-id]'); if (li) { launcher(false); open(li.dataset.id); } });
+  $('#launcher-list').addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (li) choose(+li.dataset.i); });
   $('#launcher').addEventListener('pointerdown', (e) => { if (e.target.id === 'launcher') launcher(false); });
   $('#bar-launch').addEventListener('click', () => launcher(true));
 
@@ -558,30 +489,35 @@
     const rows = [
       [`${m} + ←↑→↓`, 'Move focus'], [`${m} + Shift + ←↑→↓`, 'Swap window in that direction'],
       ...(S.mod === 'alt' ? [[`${m} + Ctrl + ←↑→↓`, 'Resize active window']] : []),
-      [`${m} + LMB drag`, 'Move window (drop on a window to split it)'], [`${m} + RMB drag`, 'Resize window'],
+      ['Drag a title bar', 'Move window (drop on a window to split it)'], [`${m} + RMB drag`, 'Resize window'],
       ['Drag a gap', 'Resize the split'], [`${m} + 1…9`, 'Switch workspace'], [`${m} + Shift + 1…9`, 'Move window to workspace'],
       [`${m} + scroll`, 'Cycle workspaces'], [`${m} + S`, 'Toggle special workspace'], [`${m} + Shift + S`, 'Move window to special workspace'],
       [`${m} + V`, 'Toggle floating'], [`${m} + F`, 'Fullscreen'], [`${m} + J`, 'Toggle split direction'],
-      [`${m} + C`, 'Close window'], [`${m} + R`, 'Launcher: open a panel'], [`${m} + /`, 'This help'],
+      [`${m} + C`, 'Close window'], [`${m} + R`, 'Launcher: new window, presets, open windows'], [`${m} + /`, 'This help'],
     ];
     $('#help-table').innerHTML = rows.map(([k, v]) => `<tr><td><kbd>${k}</kbd></td><td>${v}</td></tr>`).join('');
+    $('#help-extra').innerHTML = helpExtra;
   }
   $('#bar-help').addEventListener('click', () => help(true));
   $('#help-close').addEventListener('click', () => help(false));
   $('#help').addEventListener('pointerdown', (e) => { if (e.target.id === 'help') help(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#help').hidden) help(false); });
-  $('#mod-select').addEventListener('change', (e) => { S.mod = e.target.value; save(); help(true); });
-  $('#wm-reset').addEventListener('click', () => {
-    const mod = S.mod; S = { ...DEFAULT(), mod }; R.specialOpen = false; R.fullscreen = null;
-    for (const el of Object.values(wins)) { const v = el.querySelector('iframe#video'); if (v?.dataset.src) { v.src = v.dataset.src; delete v.dataset.src; } }
-    help(false); render();
-  });
+  $('#mod-select').addEventListener('change', (e) => { S.mod = e.target.value; render(); help(true); });
 
-  /* ---------- boot ---------- */
   let rt = 0;
   addEventListener('resize', () => { cancelAnimationFrame(rt); rt = requestAnimationFrame(render); });
-  document.body.classList.add('wm-boot');
-  render();
-  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('wm-boot')));
-  window.wm = { state: () => S, runtime: R, open, focus, workspace, movetoworkspace, killactive, togglefloating, fullscreen, toggleSpecial, movefocus, movewindow, resizeactive, togglesplit, render };
-})();
+
+  return {
+    state: () => S, runtime: R, wins,
+    // replace the whole layout (preset, shared link, reset); windows must already be added
+    setState(next) {
+      S = { ws: { 1: null }, special: null, floating: {}, active: 1, focus: null, lastFocus: {}, mod: S.mod, ...next, mod: next.mod || S.mod };
+      R.specialOpen = false; R.fullscreen = null;
+      for (const id of [...wins.keys()]) if (!where(id)) remove(id);
+      document.body.classList.add('wm-boot');
+      render();
+      requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('wm-boot')));
+    },
+    add, open, focus, workspace, movetoworkspace, killactive, togglefloating, fullscreen, toggleSpecial, movefocus, movewindow, resizeactive, togglesplit, render, launcher, help, where, visible,
+  };
+}

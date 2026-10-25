@@ -3,89 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BC Election Night 2026</title>
+<title>Midterms 2026 Live</title>
+<meta name="description" content="Live US midterm elections dashboard: Senate, House and governor results, maps, seats, streams, news, pundits and prediction markets.">
 <link rel="stylesheet" href="/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%234A8BE8'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M0 0h8v16H0z' fill='%233A7BE0'/%3E%3Cpath d='M8 0h8v16H8z' fill='%23E0453A'/%3E%3C/svg%3E">
 </head>
 <body>
 <header class="bar" id="bar">
   <div class="bar-left">
     <nav class="workspaces" id="workspaces" aria-label="Workspaces"></nav>
-    <span class="brand" title="93 seats · 47 for a majority"><span class="live-dot" aria-hidden="true"></span><h1>BC Election Night 2026</h1></span>
+    <span class="brand"><span class="live-dot" aria-hidden="true"></span><h1>Midterms 2026</h1></span>
   </div>
   <div class="bar-center" id="win-title"></div>
   <div class="bar-right">
-    <span class="status" id="status">Loading Elections BC initial count…</span>
+    <span class="status" id="status">Loading…</span>
     <span class="clock" id="clock"></span>
-    <button type="button" id="bar-launch" title="Open a panel (mod+R)">Panels</button>
-    <button type="button" id="bar-help" title="Keybinds (mod+/)">?</button>
+    <button type="button" id="bar-share" title="Copy a link to this exact dashboard">Share</button>
+    <button type="button" id="bar-launch" title="New window, presets, open windows (mod+R)">Panels</button>
+    <button type="button" id="bar-help" title="Keybinds and help (mod+/)">?</button>
   </div>
 </header>
+<div class="sim-banner" role="status">SIMULATION · invented results replayed at 30× speed for testing · <a href="?">show real data</a></div>
 
-<main id="desktop">
-  <div class="win" data-tile="seats"><div class="panel">
-    <div class="panel-head"><h2>Seat projection</h2><div class="legend" id="legend"></div></div>
-    <div class="seat-summary tile-body">
-      <div class="seatbar-wrap">
-        <div class="seatbar" id="seatbar" role="img" aria-label="Seat projection"></div>
-        <div class="majority-line" style="left: calc(47 / 93 * 100%)"><span>47</span></div>
-      </div>
-      <div class="party-tiles" id="party-tiles"></div>
-    </div>
-  </div></div>
+<main id="desktop"></main>
 
-  <div class="win" data-tile="map"><div class="panel map-panel">
-    <div class="panel-head"><h2 id="map-title">Live results map</h2>
-      <div class="map-key">
-        <span><i class="swatch solid"></i> Elected / projected</span>
-        <span><i class="swatch leading"></i> Leading (fainter = fewer boxes in)</span>
-        <span><i class="swatch none"></i> No results</span>
-      </div>
-    </div>
-    <div class="map-wrap">
-      <svg id="map" role="img" aria-label="Map of British Columbia electoral districts coloured by leading party"></svg>
-    </div>
-  </div></div>
-
-  <div class="win" data-tile="detail"><div class="panel">
-    <div class="panel-head"><h2>Riding detail</h2></div>
-    <div class="riding-detail tile-body" id="riding-detail"><p class="muted">Hover a riding for details, click to pin it here.</p></div>
-  </div></div>
-
-  <div class="win" data-tile="ridings"><div class="panel">
-    <div class="panel-head"><h2>All ridings</h2><input id="riding-filter" type="search" placeholder="Filter ridings or candidates…" aria-label="Filter ridings"></div>
-    <div class="table-scroll tile-body">
-      <table id="riding-list">
-        <thead><tr><th>Riding</th><th>Leader</th><th>Party</th><th class="num">Margin</th><th class="num">Boxes</th><th>Status</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div></div>
-
-  <div class="win" data-tile="video"><div class="panel video-panel">
-    <div class="panel-head"><h2 id="video-title">CBC live stream</h2>
-      <form class="inline-form" id="video-form" title="Paste a YouTube URL or video ID">
-        <input id="video-input" type="text" placeholder="YouTube URL / ID" aria-label="YouTube URL or ID">
-        <button type="submit">Load</button>
-        <button type="button" id="video-channel-live" title="Whatever the CBC News channel is streaming right now">Channel live</button>
-      </form>
-    </div>
-    <div class="video-box"><iframe id="video" title="CBC live stream" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-  </div></div>
-
-  <div class="win" data-tile="news"><div class="panel feed-panel">
-    <div class="panel-head"><h2>News</h2><span class="panel-meta" id="news-meta"></span></div>
-    <ol class="feed-list" id="news-list"><li class="muted">Loading…</li></ol>
-  </div></div>
-
-  <div class="win" data-tile="x"><div class="panel feed-panel">
-    <div class="panel-head"><h2><a id="x-link" href="https://x.com/JJ_McCullough" target="_blank" rel="noopener">@JJ_McCullough</a> on X</h2><span class="panel-meta" id="x-meta"></span></div>
-    <div class="feed-list x-feed" id="x-feed"><p class="muted">Loading…</p></div>
-  </div></div>
-</main>
 <div class="launcher" id="launcher" hidden>
   <div class="launcher-box" role="dialog" aria-label="Open panel">
-    <input id="launcher-input" type="text" placeholder="Open panel…" autocomplete="off" spellcheck="false">
+    <input id="launcher-input" type="text" placeholder="New window, preset or open window…" autocomplete="off" spellcheck="false">
     <ul id="launcher-list" role="listbox"></ul>
   </div>
 </div>
@@ -97,15 +41,17 @@
       <select id="mod-select"><option value="alt">Alt</option><option value="ctrlalt">Ctrl + Alt</option></select>
     </label>
     <table id="help-table"></table>
-    <div class="help-actions"><button type="button" id="wm-reset">Reset layout</button><button type="button" id="help-close">Close</button></div>
+    <div id="help-extra"></div>
+    <div class="help-actions"><span><button type="button" id="wm-reset">Reset layout</button> <button type="button" id="wm-restore">Restore my layout</button></span><button type="button" id="help-close">Close</button></div>
   </div>
 </div>
+<div class="popover" id="popover" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="tooltip" id="tooltip" hidden></div>
-
 
 <div class="reader" id="reader" hidden>
   <div class="reader-backdrop" data-close></div>
-  <div class="reader-win" role="dialog" aria-modal="true" aria-labelledby="reader-title">
+  <div class="reader-win" role="dialog" aria-modal="true" aria-labelledby="reader-title" tabindex="-1">
     <div class="reader-bar">
       <div class="reader-src" id="reader-src"></div>
       <div class="reader-actions">
@@ -127,8 +73,18 @@
   </div>
 </div>
 
+<!-- hatch fills for "leading" (shared by map and chamber SVGs) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="hatch-DEM" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--dem-hatch-bg)"/><rect width="3" height="6" fill="var(--dem)"/></pattern>
+    <pattern id="hatch-GOP" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--gop-hatch-bg)"/><rect width="3" height="6" fill="var(--gop)"/></pattern>
+    <pattern id="hatch-IND" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--ind-hatch-bg)"/><rect width="3" height="6" fill="var(--ind)"/></pattern>
+    <pattern id="hatch-OTH" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--panel)"/><rect width="3" height="6" fill="var(--oth)"/></pattern>
+  </defs>
+</svg>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="/dashboard.js"></script>
-<script src="/wm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script type="module" src="/js/boot.js"></script>
 </body>
 </html>
