@@ -212,7 +212,28 @@ test('timeline bundle carries topic names and topic:<id> price ticks', async () 
   const st = _memoryStore();
   await st.set('snap:markets', { topics: [{ id: 'g', name: 'G', events: [{ slug: 's', title: 'Q?', exclusive: true, outcomes: [{ id: '1', label: 'A', p: 0.6, d1: 0.01 }] }] }] });
   await st.addTicks([{ key: 'topic:1', t: '2026-10-27T20:00:00Z', v: 0.6 }]);
-  const b = await bundleFromStore(st);
+  const b = await bundleFromStore(st, { now: Date.parse('2026-10-28T12:00:00Z') });
   assert.deepEqual(b.markets['topic:1'].v, [0.6]);
   assert.deepEqual(b.topics[0].events[0].outcomes, [{ id: '1', label: 'A' }]);
+});
+
+test('full timeline bundle starts at 3 pm ET on election day; stocks 24 h earlier; since= is not floored', async () => {
+  const { bundleFromStore, bundleFloor, NIGHT_FROM } = await import('../lib/timeline.mjs');
+  const { _memoryStore } = await import('../lib/store.mjs');
+  assert.equal(bundleFloor(Date.parse('2026-11-04T03:00:00Z')), NIGHT_FROM);
+  assert.equal(bundleFloor(Date.parse('2026-11-02T12:00:00Z')), '2026-11-01T12:00:00.000Z');
+  const st = _memoryStore();
+  await st.addTicks([
+    { key: 'control:S', t: '2026-10-26T12:00:00.000Z', v: 0.4 }, { key: 'control:S', t: '2026-11-03T23:00:00.000Z', v: 0.5 },
+    { key: 'stock:SPX', t: '2026-11-02T22:00:00.000Z', v: 1 }, { key: 'stock:SPX', t: '2026-11-03T22:00:00.000Z', v: 2 },
+    { key: 'stockpc:SPX', t: '2026-11-03T14:00:00.000Z', v: 0.9 },
+  ]);
+  const now = Date.parse('2026-11-04T03:00:00Z');
+  const b = await bundleFromStore(st, { now });
+  assert.deepEqual(b.markets['control:S'].v, [0.5]);
+  assert.deepEqual(b.stocks.SPX.v, [1, 2]);
+  assert.deepEqual(b.stockPrev.SPX.v, [0.9]);
+  assert.equal(b.from >= NIGHT_FROM, true);
+  const inc = await bundleFromStore(st, { since: '2026-10-01T00:00:00.000Z', now });
+  assert.deepEqual(inc.markets['control:S'].v, [0.4, 0.5]);
 });
