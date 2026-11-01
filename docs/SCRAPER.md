@@ -92,6 +92,34 @@ A failing source never stops the cycle: each adapter fails soft, and the error a
 
 `/api/status` shows the latest heartbeat: `curl https://2026-midterms-dashboard.vercel.app/api/status`.
 
+## Request budget (audited 2026-11-01)
+
+What the scraper sends upstream on its default 15 s tick, with every task succeeding. A task runs at most once per interval (measured from the end of its last run).
+
+| Host | Task | Interval | Requests per run | Per hour | Known limit |
+|---|---|---|---|---|---|
+| politics.api.cnn.io | results | 60 s | 4 (SG, S2G, HG, GG) | 240 | none published; grey area, kept slow |
+| NC, VA, GA state feeds | results | 60 s | 1 each | 60 each | none |
+| Clarity (CO, IA) | results | 60 s | 2 per state once listed | ~240 | none |
+| Kalshi | markets | 60 s | 3 (tickers in 100s) | 180 | ~20 req/s |
+| Polymarket Gamma | markets | 60 s | ~22 `/markets` (ids in 50s) + 1 `/events` | ~1,380 | 300 per 10 s |
+| PredictIt | markets | 60 s | 1 | 60 | none published |
+| YouTube pages | streams | 120 s | up to ~66 (embed + `/live` per channel) | up to ~2,000 | none published; bot checks. `search.list` is never called |
+| RSS hosts (17) | news | 120 s | 21 | 630 | none |
+| Google Trends | trends | 600 s | 1 | 6 | none |
+| CNBC quotes / charts | stocks / stockcharts | 30 s / 300 s | 3 / 55 | 360 / 660 | none published |
+| Bluesky public API | social | 90 s | 11 | 440 | 3,000 per 5 min per IP |
+| Truth Social (+ RSS fallback) | social | 90 s | 1–3 | ≤120 | ~300 per 5 min |
+| X API | social | 90 s | 4, only with `X_BEARER_TOKEN` | 160 | billed per post read |
+
+Failure behaviour:
+- **Backoff.** A failed task waits interval × 2^(failures − 1), at most 15 minutes, before the next try (`lib/poll.mjs`). Before 2026-11-01 a failure wrote no snapshot, so the task reran on every 15 s cycle.
+- **429 cooldown.** A 429 response puts the host on cooldown until its `Retry-After` passes (default 60 s, capped at 15 minutes). Requests to that host fail straight away until then (`lib/http.mjs`).
+- **County files.** `/api/counties` is the only upstream fetch the read-only site makes. It requests CNN's per-race county file when a race card opens. The CDN keeps each race for 30 s and a failure for 60 s.
+- **Browser refreshes.** After each heartbeat, browsers spread their refetches over 2 s. `/api/status` is cached for 15 s.
+
+Not changed, known: a slow task (streams, news) holds up the rest of its cycle and the heartbeat, at most until the 90 s watchdog. Offline YouTube channels are rechecked in full every run.
+
 ## Tables
 
 All in `public`, created by `db/schema.sql` (idempotent: `psql "$POSTGRES_URL_NON_POOLING" -f db/schema.sql`). Everyone can read; only the secret key can write.

@@ -18,10 +18,14 @@ function nudge(beat) {
   last = now;
   const v = beat?.id || Math.floor(now / 10000);
   const ran = new Set(TASK_KEYS(beat?.tasks));
-  for (const k of hub.keys()) if (!beat?.tasks || ran.has(k)) hub.refresh(k, v);
-  if (!beat?.tasks || ran.has('events')) refreshEvents(v);
-  if (!beat?.tasks || ran.has('results') || ran.has('markets') || ran.has('stocks')) refreshTimeline(v); // the scrubber's right edge follows the data
   setPaused(null);
+  // every viewer gets the nudge at the same instant: spread the refetches over 2 s so the CDN's
+  // first fetch of the new version is cached before most viewers ask for it
+  setTimeout(() => {
+    for (const k of hub.keys()) if (!beat?.tasks || ran.has(k)) hub.refresh(k, v);
+    if (!beat?.tasks || ran.has('events')) refreshEvents(v);
+    if (!beat?.tasks || ran.has('results') || ran.has('markets') || ran.has('stocks')) refreshTimeline(v); // the scrubber's right edge follows the data
+  }, Math.random() * 2000);
 }
 
 function setPaused(since) {
