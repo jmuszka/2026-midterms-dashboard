@@ -3,7 +3,7 @@
  * every 30 s, intraday charts every 5 min); in replay, rebuilt from recorded prices.
  * Up/down colours (#2FA88A / #CF7A26) were validated with the dataviz palette checker and are
  * never the only cue: every change also carries ▲/▼ and a sign. */
-import { app, hub, esc, tip } from '../core.js';
+import { app, hub, esc, tip, dataNote } from '../core.js';
 
 const UP = '#2FA88A', DOWN = '#CF7A26';
 const HERO = ['.SPX', '.IXIC', '.DJI', '@SP.1', '@ND.1', '.VIX', 'US10Y', 'BTC.CB='];
@@ -180,7 +180,7 @@ export default {
       tip.show(e, `<b>${new Date(t * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET</b><table class="mini"><tbody>${rows}</tbody></table>`);
     });
     out.addEventListener('mouseleave', () => { tip.hide(); out.querySelectorAll('line.cross').forEach((l) => { l.setAttribute('x1', -10); l.setAttribute('x2', -10); }); });
-    const un = hub.subscribe('stocks', (s) => { data = s.data ? { ...s.data } : { error: s.error }; draw(); });
+    const un = hub.subscribe('stocks', (s) => { data = s.data ? { ...s.data } : { error: s.error }; draw(); ctx.state('stocks', dataNote(s, 'quotes')); });
     return { destroy() { un(); tip.hide(); }, settingsChanged: draw };
   },
 };

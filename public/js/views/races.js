@@ -1,5 +1,5 @@
 /* Race browser: every contest as a sortable, filterable table. */
-import { app, hub, esc, fmt, pct1, selection, closeLabel, ratingClass, raceState } from '../core.js';
+import { app, hub, esc, fmt, pct1, selection, closeLabel, ratingClass, raceState, dataNote } from '../core.js';
 import { statusBadge } from './race.js';
 
 const FILTERS = [['all', 'All'], ['competitive', 'Competitive'], ['tossup', 'Toss-ups'], ['counting', 'Counting'], ['uncalled', 'Uncalled with votes'], ['close', 'Margin under 2'], ['flips', 'Flips'], ['called', 'Called']];
@@ -62,7 +62,7 @@ export default {
       ctx.meta(`${rows.length} races`);
     }
     body.querySelector('tbody').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-race]'); if (tr) { selection.set(tr.dataset.race); ctx.openRace?.(tr.dataset.race); } });
-    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); });
+    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); ctx.state('results', dataNote(s, 'results')); });
     const u2 = selection.subscribe(() => body.querySelectorAll('tr[data-race]').forEach((tr) => tr.classList.toggle('pinned', tr.dataset.race === selection.id)));
     draw();
     return { destroy() { u1(); u2(); }, settingsChanged: draw };

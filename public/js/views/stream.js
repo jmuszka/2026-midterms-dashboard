@@ -1,7 +1,7 @@
 /* Live stream carousel. Sources come from config/sources.json; /api/streams says
  * which are live and gives a concrete video id, because embed/live_stream?channel=
  * breaks whenever a channel runs two streams at once (most networks on election night). */
-import { app, hub, esc, etTime } from '../core.js';
+import { app, hub, esc, etTime, dataNote } from '../core.js';
 import { clock } from '../clock.js';
 import { streamAt } from '../timeline.js';
 
@@ -178,7 +178,7 @@ export default {
 
     let timer = null;
     const arm = () => { clearInterval(timer); if (+settings.cycle > 0) timer = setInterval(() => step(1), settings.cycle * 1000); };
-    const un = hub.subscribe('streams', (s) => { live = s.data?.streams || live; fillPicker(); load(); });
+    const un = hub.subscribe('streams', (s) => { live = s.data?.streams || live; fillPicker(); load(); ctx.state('streams', s.error ? dataNote(s, 'stream list') : ''); });
     fillPicker(); load(); arm();
     return {
       destroy() { un(); unClock(); clearInterval(timer); clearInterval(drift); frame.src = 'about:blank'; try { player?.destroy(); } catch {} },

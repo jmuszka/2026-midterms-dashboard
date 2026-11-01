@@ -47,6 +47,7 @@ export default {
           || `<li class="muted pad">${st.error ? `Feed error: ${esc(st.error)}` : 'No updates yet. Results start after the first polls close at 6 pm ET.'}</li>`;
       }
       ctx.meta(`${all.length} updates${app.sim ? ' · SIMULATED' : ''}`);
+      ctx.state('events', st.error && all.length ? `<span class="warn" title="${esc(st.error)}">update failed · retrying</span>` : '');
     }
     body.addEventListener('click', (e) => { const li = e.target.closest('[data-race]'); if (li) { selection.set(li.dataset.race); ctx.openRace?.(li.dataset.race); } });
     const un = subscribeEvents((st, fresh) => {

@@ -1,6 +1,6 @@
 /* Aerial chamber view: every seat of the Senate (100) or House (435) as a hemicycle,
  * or every governorship. Holdovers are muted, called seats solid, leads hatched. */
-import { app, hub, esc, selection, tip } from '../core.js';
+import { app, hub, esc, selection, tip, dataNote } from '../core.js';
 import { seatList, hemicycle, tally, CHAMBERS } from '../seats.js';
 import { raceTooltip } from './race.js';
 
@@ -37,7 +37,7 @@ export default {
         ${maj ? `<span class="muted">${maj} for majority</span>` : ''}
         <span style="--c:${app.partyColor('GOP')}"><b>${R}</b> R${t.leading.GOP ? ` <small>+${t.leading.GOP} leading</small>` : ''}</span>`;
     }
-    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); });
+    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); ctx.state('results', dataNote(s, 'results')); });
     const u2 = hub.subscribe('markets', (s) => { markets = s.data || markets; });
     const u3 = selection.subscribe(() => svg.selectAll('circle.seat').classed('sel', (d) => d.raceId && d.raceId === selection.id));
     body.querySelectorAll('[data-ch]').forEach((b) => b.addEventListener('click', () => {

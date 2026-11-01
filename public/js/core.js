@@ -155,6 +155,19 @@ export function marginText(r) {
   return `${app.partyShort(a.party)} +${r.marginPct.toFixed(1)}`;
 }
 
+/* ---------------- data state ----------------
+ * One wording for every window: a hub state { data, error, at } -> a short note for the
+ * panel head ('' when all is well). Last good data stays on screen; the note says how old. */
+export function dataNote(s, what = 'data') {
+  if (!s || replay.source) return '';
+  if (s.error && !s.data) return `<span class="warn" title="${esc(s.error)}">${esc(what)} unavailable · retrying</span>`;
+  if (s.error) return `<span class="warn" title="${esc(s.error)}">update failed · ${esc(what)} from ${timeAgo(s.at)}</span>`;
+  if (s.data?.stale) return `<span class="warn" title="The source has not updated recently">${esc(what)} stale · ${timeAgo(s.data.ranAt)}</span>`;
+  return '';
+}
+// body placeholder while a window has nothing to show yet
+export const placeholder = (s, loading = 'Loading…') => (s?.error ? `<p class="feed-error">Could not load this yet: ${esc(s.error)}. Retrying automatically.</p>` : `<p class="muted pad">${esc(loading)}</p>`);
+
 /* ---------------- toasts ---------------- */
 export function toast(html, { party = null, ms = 9000, onClick = null } = {}) {
   const box = $('#toasts');

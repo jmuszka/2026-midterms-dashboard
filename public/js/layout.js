@@ -107,7 +107,7 @@ export const titleOf = (id) => { const i = inst[id]; return i ? (live[id]?.title
 function mount(id) {
   const i = inst[id], T = TYPES[i.type];
   const el = document.createElement('div');
-  el.innerHTML = `<div class="panel" data-type="${i.type}"><div class="panel-head"><h2></h2><span class="panel-meta"></span>
+  el.innerHTML = `<div class="panel" data-type="${i.type}"><div class="panel-head"><h2></h2><span class="panel-state"></span><span class="panel-meta"></span>
       <button type="button" class="hbtn gear no-drag" title="Window settings" aria-label="Window settings">${GEAR}</button>
       <button type="button" class="hbtn close no-drag" title="Close window (mod+C)" aria-label="Close window">${CLOSE}</button></div>
     <div class="panel-body"></div></div>`;
@@ -120,6 +120,8 @@ function mount(id) {
   const ctx = {
     title: (t) => { if (!t) return; L.title = t; el.querySelector('h2').textContent = t; if (wm.state().focus === id) document.querySelector('#win-title').textContent = t; },
     meta: (html) => { el.querySelector('.panel-meta').innerHTML = html || ''; },
+    // data health per hub key (results, markets…): the panel head shows whichever notes are set
+    state: (key, html) => { (L.states ||= {})[key] = html || ''; el.querySelector('.panel-state').innerHTML = Object.values(L.states).filter(Boolean).join(' · '); },
     save: (patch) => { Object.assign(i.settings, patch); persist(); },
     openRace,
     get primary() { return Object.entries(inst).find(([, v]) => v.type === i.type)?.[0] === id; },

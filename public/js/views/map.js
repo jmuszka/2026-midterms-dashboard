@@ -1,6 +1,6 @@
 /* Results map. Senate and governors by state, House by 2026 district (state borders on top).
  * Colour modes: live result, pre-election rating, market odds, flips, swing vs 2024. */
-import { app, hub, esc, fmt, pct1, signed, selection, tip, raceState, ratingClass } from '../core.js';
+import { app, hub, esc, fmt, pct1, signed, selection, tip, raceState, ratingClass, dataNote } from '../core.js';
 import { raceTooltip } from './race.js';
 
 let GEO = null; // loaded once, shared by every map window
@@ -96,7 +96,7 @@ export default {
       gBorder.selectAll('path').data(settings.chamber === 'H' ? [GEO.borders] : []).join('path').attr('class', 'state-border').attr('d', path);
       key();
     }
-    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); });
+    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); ctx.state('results', dataNote(s, 'results')); });
     const u2 = hub.subscribe('markets', (s) => { markets = s.data || markets; if (settings.mode === 'markets') draw(); });
     const u3 = selection.subscribe(() => gFill.selectAll('path').classed('sel', (d) => raceFor(d) === selection.id));
     body.querySelectorAll('[data-ch]').forEach((b) => b.addEventListener('click', () => {

@@ -1,6 +1,6 @@
 /* Race card: one race in depth. Follows the shared selection unless pinned. Also exports
  * the tooltip/summary builders used by the map, chamber and race browser. */
-import { app, hub, esc, fmt, pct1, signed, selection, getJSON, closeLabel, ratingClass, timeAgo } from '../core.js';
+import { app, hub, esc, fmt, pct1, signed, selection, getJSON, closeLabel, ratingClass, timeAgo, dataNote } from '../core.js';
 
 export function statusBadge(r, m) {
   if (r?.called) return `<span class="badge called">${r.simulated ? 'Sim call' : 'Called'}${r.flip ?? (m?.incumbent && r.winner !== m.incumbent.party) ? ' · flip' : ''}</span>`;
@@ -78,11 +78,11 @@ export default {
       ctx.title(settings.pin ? app.race[rid].name : `Race · ${app.race[rid].name}`);
       body.innerHTML = detail(rid, results?.[rid], markets, countyFor === rid ? counties : null);
       if (results?.[rid]?.countyKey && countyFor !== rid) {
-        countyFor = rid; counties = null;
-        getJSON(`/api/counties?race=${encodeURIComponent(rid)}`).then((d) => { if (countyFor === rid) { counties = d.counties; draw(); } }).catch(() => {});
+        countyFor = rid; counties = null; ctx.state('counties', '');
+        getJSON(`/api/counties?race=${encodeURIComponent(rid)}`).then((d) => { if (countyFor === rid) { counties = d.counties; draw(); } }).catch((e) => { if (countyFor === rid) ctx.state('counties', `<span class="warn" title="${esc(e.message)}">county results unavailable</span>`); });
       }
     };
-    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); });
+    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); ctx.state('results', dataNote(s, 'results')); });
     const u2 = hub.subscribe('markets', (s) => { markets = s.data || markets; draw(); });
     const u3 = selection.subscribe(() => { if (!settings.pin) draw(); });
     draw();

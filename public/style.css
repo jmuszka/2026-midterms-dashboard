@@ -472,3 +472,7 @@ kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(
   .inline-form input { width: 120px; }
   .map-key { margin-left: 0; }
 }
+
+/* data-state note in the panel head (errors, stale data): sits before the meta line and never wraps */
+.panel-state { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.panel-state:empty { display: none; }

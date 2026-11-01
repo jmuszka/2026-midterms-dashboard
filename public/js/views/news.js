@@ -1,5 +1,5 @@
 /* News feed with lanes (national, analysis, battleground states, race calls) and the reader window. */
-import { app, hub, esc, timeAgo } from '../core.js';
+import { app, hub, esc, timeAgo, dataNote } from '../core.js';
 import { openReader } from '../reader.js';
 
 const LANES = [['all', 'All'], ['national', 'National'], ['analysis', 'Analysis'], ['states', 'States'], ['called', 'Race calls']];
@@ -32,7 +32,8 @@ export default {
     });
     const un = hub.subscribe('news', (s) => {
       if (s.data) { items = s.data.items; draw(); items.forEach((i) => seenLinks.add(i.link)); first = false; }
-      ctx.meta(s.error ? 'feed error' : `${items.length} articles · ${timeAgo(s.data?.fetchedAt)}${s.data?.errors?.length ? ' · some feeds failed' : ''}`);
+      ctx.state('news', dataNote(s, 'news'));
+      ctx.meta(`${items.length} articles · ${timeAgo(s.data?.fetchedAt)}${s.data?.errors?.length ? ` · <span title="${esc(s.data.errors.join('\n'))}">${s.data.errors.length} feeds failed</span>` : ''}`);
     });
     return { destroy: un, settingsChanged: draw };
   },

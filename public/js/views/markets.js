@@ -1,7 +1,7 @@
 /* Prediction markets: chamber control by venue with a 48-hour sparkline, the
  * balance-of-power combo, non-race Polymarket questions (config/sources.json
  * markets.topics) and the most competitive races' odds. */
-import { app, hub, esc } from '../core.js';
+import { app, hub, esc, dataNote, placeholder } from '../core.js';
 
 const VENUES = [['kalshi', 'Kalshi'], ['polymarket', 'Polymarket'], ['predictit', 'PredictIt']];
 function spark(points, w = 160, h = 34) {
@@ -55,9 +55,9 @@ export default {
     { key: 'topics', label: 'World questions', options: () => [['all', 'All'], ...(app.config.markets?.topics || []).map((g) => [g.id, g.name]), ['none', 'None']] }],
   title: () => 'Prediction markets',
   mount(body, settings, ctx) {
-    let m = null;
+    let m = null, hs = null;
     function draw() {
-      if (!m) { body.innerHTML = '<p class="muted pad">Loading…</p>'; return; }
+      if (!m) { body.innerHTML = placeholder(hs, 'Loading market prices…'); return; }
       const combo = m.control?.combo?.avg;
       const list = settings.races === 'none' ? [] : app.manifest.filter((r) => r.chamber === settings.races && m.races?.[r.id]?.avg && (settings.races !== 'H' || Math.abs(r.consensus?.score ?? 3) < 1.5))
         .map((r) => ({ r, p: m.races[r.id].avg.DEM ?? (1 - (m.races[r.id].avg.GOP ?? 0.5)) }))
@@ -69,7 +69,7 @@ export default {
         ${m.meta?.errors?.length ? `<p class="feed-error">${m.meta.errors.map(esc).join('<br>')}</p>` : ''}
         <p class="muted small">Prices are probabilities from Kalshi, Polymarket and PredictIt, renormalised so the parties shown sum to 100%. Markets are not results.</p></div>`;
     }
-    const un = hub.subscribe('markets', (s) => { m = s.data || m; draw(); ctx.meta(s.error ? 'error' : ''); });
+    const un = hub.subscribe('markets', (s) => { hs = s; m = s.data || m; draw(); ctx.state('markets', dataNote(s, 'prices')); });
     draw();
     return { destroy: un, settingsChanged: draw };
   },

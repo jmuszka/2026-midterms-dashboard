@@ -1,5 +1,5 @@
 /* Balance of power: Senate, House and governors as stacked seat bars with tiles. */
-import { app, hub, esc, signed } from '../core.js';
+import { app, hub, esc, signed, dataNote } from '../core.js';
 import { tally, CHAMBERS } from '../seats.js';
 
 const PARTIES = ['DEM', 'IND', 'GOP'];
@@ -57,8 +57,8 @@ export default {
       const anyVotes = results && Object.values(results).some((r) => r.totalVotes > 0);
       body.innerHTML = `<div class="bop">${[...settings.chambers].map((ch) => { const t = tally(ch, results); return bar(ch, t, markets) + (anyVotes ? '' : pre(ch, t)); }).join('')}</div>`;
     };
-    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); ctx.meta(s.data?.simulated ? 'SIMULATED' : s.error ? 'results error' : ''); });
-    const u2 = hub.subscribe('markets', (s) => { markets = s.data || markets; draw(); });
+    const u1 = hub.subscribe('results', (s) => { results = s.data?.races || results; draw(); ctx.meta(s.data?.simulated ? 'SIMULATED' : ''); ctx.state('results', dataNote(s, 'results')); });
+    const u2 = hub.subscribe('markets', (s) => { markets = s.data || markets; draw(); ctx.state('markets', s.error && !s.data ? dataNote(s, 'odds') : ''); });
     draw();
     return { destroy() { u1(); u2(); } };
   },
