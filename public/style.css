@@ -375,7 +375,7 @@ table.mini td { padding: 3px 8px 3px 0; border: 0; }
 .tl-time { font: 12px var(--mono); color: var(--text-2); white-space: nowrap; min-width: 210px; }
 .transport.replaying .tl-time b { color: #f0c674; }
 body.replay .status { color: #f0c674; }
-@media (max-width: 900px) { .transport { flex-wrap: wrap; height: auto; padding: 6px 12px; } .tl-track { order: 5; flex-basis: 100%; } .tl-time { min-width: 0; } }
+@media (max-width: 900px) { .transport { flex-wrap: wrap; height: auto; padding: 6px 12px; row-gap: 6px; } .tl-track { order: 5; flex-basis: 100%; } .tl-time { min-width: 0; flex: 1 1 0; font-size: 11px; overflow: hidden; text-overflow: ellipsis; } }
 
 /* ---------- scraper paused ---------- */
 .paused-banner { flex: none; text-align: center; font-size: 12px; font-weight: 600; padding: 4px 12px; background: #5a1a1a; color: #fff; border-bottom: 1px solid #8a2c2c; }
@@ -471,6 +471,15 @@ kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(
   body.special-open #desktop::after { display: none; }
   .inline-form input { width: 120px; }
   .map-key { margin-left: 0; }
+  /* compact bar: brand and buttons on one row, status under them. Workspaces and the clock are
+     hidden: every window is on this one page, and the status line carries the times */
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .workspaces, .clock { display: none; }
+  .bar-left { flex: 1 1 auto; }
+  .bar-right { display: contents; }
+  .bar-right button { order: 2; padding: 4px 11px; }
+  .status { order: 3; flex-basis: 100%; white-space: normal; font-size: 12px; }
+  .tile .sub { white-space: normal; }
 }
 
 /* data-state note in the panel head (errors, stale data): sits before the meta line and never wraps */
