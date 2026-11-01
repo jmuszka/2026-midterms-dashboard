@@ -2,22 +2,31 @@
 
 Written 2026-10-25. Election day is Tuesday 3 November 2026. This document turns the BC Election Night demo (git tag `bc-baseline`) into the "ultimate" US midterms second screen. Data-source facts live in `docs/RESEARCH.md`; this file is about what to build and in what order.
 
-## Status (2026-10-25, end of day)
+## Status (2026-11-01)
 
-Days Oct 26 to Nov 1 of the build order below were completed in one session on Oct 25; what remains is the Nov 2 polish list and the Nov 3 runbook in AGENTS.md.
+Everything in the build order through the Nov 2 polish list is done. What remains is the Nov 3 runbook in AGENTS.md.
 
 | Area | State |
 |---|---|
 | Window instances, settings, presets, `#l=` share links | Done |
-| Store, poller, differ, events | Done (memory/file stores; Supabase supported, not provisioned) |
-| Results adapters | CNN, NC, VA, GA, CO, IA done; CA and the Cloudflare-blocked states not started |
-| Markets | Kalshi, Polymarket, PredictIt for all 506 races and both chambers |
+| Data flow | Done: `scripts/scraper.mjs` on the owner's machine is the only writer, into Supabase (`midterms-2026`). The site runs with `READ_ONLY=1`, uses a Realtime heartbeat nudge, and shows a paused banner (docs/SCRAPER.md). |
+| Results adapters | CNN, NC, VA, GA, CO and IA done. CA and the Cloudflare-blocked states are not started; CNN covers them. |
+| Markets | Kalshi, Polymarket and PredictIt for 506 races and both chambers (refreshed Nov 1). Polymarket world questions. |
 | Geometry | 2026 districts (Missouri on 2022 lines), states, counties |
-| Views | balance, map, chamber, feed, race card, race browser, timeline, stream carousel, news, social, markets, trends |
-| Simulation mode | Done (`?sim=1`), not in the original plan; added to build and rehearse views before real results exist |
-| Tests | offline data tests, browser smoke test, ported WM test |
-| Not done | short share links, Supabase Realtime push, CA adapter, county mini-map inside the race card (county table only) |
-| Next feature | timeline scrubber / replay: see `docs/SCRUBBER.md` |
+| Views | balance, map, chamber, feed, race card, race browser, timeline, streams, news, social, markets, trends, stocks/currencies |
+| Timeline scrubber | Done (docs/SCRUBBER.md). Streams follow the timeline. |
+| Polish (Nov 1) | Done: error/stale note in every panel head, attribution footer, phone bar/transport, rate-limit audit with backoff and 429 cooldown (docs/SCRAPER.md "Request budget"), CDN load test (below), config freeze. |
+| Not done | short share links, CA adapter, county mini-map in the race card (county table only) |
+
+### Config freeze (from 2026-11-01)
+
+`config/races.json` and `config/markets.json` were regenerated on Nov 1 and are frozen, along with the rest of `config/`. On election night, change only:
+- the Georgia slug in `config/sources.json` (runbook, 5 pm ET);
+- a state feed's `enabled` flag, if its feed misbehaves;
+- `config/race-overrides.json`, for a wrong candidate or incumbent spotted on the night (then run `npm run build:races` without `--refresh`);
+- `config/stream-archive.json`, after the night.
+
+Anything else waits until after Nov 4. A config change needs a scraper restart, plus a deploy for anything the site reads (`races.json`, `presets.json`, `sources.json` streams).
 
 ## 1. Vision
 
@@ -129,15 +138,15 @@ Each day ends with a deploy that works. Things later in the list can be dropped 
 
 | Day | Deliverable |
 |---|---|
-| Sun Oct 26 | Window types + instances refactor of `dashboard.js`/`wm.js`; settings popover; URL-hash layout sharing; presets. Existing BC panels keep working as instances. |
-| Mon Oct 27 | Store provisioned (Supabase via Marketplace); `/api/poll` skeleton with secret; external scheduler hitting it; `races.json` generator script (OpenFEC + Wikipedia/270toWin + Downballot). Kalshi + Polymarket + PredictIt adapters live → `markets` window. |
-| Tue Oct 28 | Results adapters: NC (live), VA, GA (2024 slug for schema), CA (test feed 8am–noon PT), Clarity CO/IA, CNN 2026 keys. Differ + `events` table. Race model normalised. |
-| Wed Oct 29 | Geometry: TIGER 2026 per state + MO from 2025, simplified and rewound; us-atlas states/counties. Map window with chamber setting and insets. Balance-of-power bars. |
-| Thu Oct 30 | Chamber (hemicycle) window; race card; race browser; poll-close timeline. |
-| Fri Oct 31 | Live feed window + ticker + toasts from `events`; CA second test feed; replay harness that feeds 2024 CNN/NYT-shaped fixtures through the differ to exercise every event type. |
-| Sat Nov 1 | Streams: live-ID resolver, carousel, Twitch/Kick/Rumble, Stream Wall preset; re-check which outlets have scheduled Nov 3 streams. Pundit feed on Bluesky; Trump feed adapter. |
-| Sun Nov 2 | Polish: mobile stacking, error states, attribution footer, rate-limit audit of every poller, load test the CDN path. Freeze config. Write the Nov 3 runbook (slugs to fill in at 6 pm ET: GA 2026 slug, CNN SG/GG keys, stream video ids). |
-| Mon Nov 3 | Watch mode. Fill the runbook slugs as they appear, keep the scheduler alive, fix adapters as feeds change shape. |
+| Mon Oct 26 | Window types + instances refactor of `dashboard.js`/`wm.js`; settings popover; URL-hash layout sharing; presets. Existing BC panels keep working as instances. |
+| Tue Oct 27 | Store provisioned (Supabase via Marketplace); `/api/poll` skeleton with secret; external scheduler hitting it; `races.json` generator script (OpenFEC + Wikipedia/270toWin + Downballot). Kalshi + Polymarket + PredictIt adapters live → `markets` window. |
+| Wed Oct 28 | Results adapters: NC (live), VA, GA (2024 slug for schema), CA (test feed 8am–noon PT), Clarity CO/IA, CNN 2026 keys. Differ + `events` table. Race model normalised. |
+| Thu Oct 29 | Geometry: TIGER 2026 per state + MO from 2025, simplified and rewound; us-atlas states/counties. Map window with chamber setting and insets. Balance-of-power bars. |
+| Fri Oct 30 | Chamber (hemicycle) window; race card; race browser; poll-close timeline. |
+| Sat Oct 31 | Live feed window + ticker + toasts from `events`; CA second test feed; replay harness that feeds 2024 CNN/NYT-shaped fixtures through the differ to exercise every event type. |
+| Sun Nov 1 | Streams: live-ID resolver, carousel, Twitch/Kick/Rumble, Stream Wall preset; re-check which outlets have scheduled Nov 3 streams. Pundit feed on Bluesky; Trump feed adapter. |
+| Mon Nov 2 | Polish: mobile stacking, error states, attribution footer, rate-limit audit of every poller, load test the CDN path. Freeze config. Write the Nov 3 runbook (slugs to fill in at 6 pm ET: GA 2026 slug, CNN SG/GG keys, stream video ids). |
+| Tue Nov 3 | Watch mode. Fill the runbook slugs as they appear, keep the scheduler alive, fix adapters as feeds change shape. |
 
 ## 5. Legal and etiquette stance
 

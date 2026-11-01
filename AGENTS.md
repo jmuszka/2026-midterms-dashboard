@@ -109,7 +109,7 @@ node tests/smoke.browser.mjs <dir> <url>   # screenshots ws1-4, reader, phone in
 
 ## Nov 3 runbook
 
-- **Days before:** `npm run build:races` and `npm run build:markets` (candidates, ratings and House markets keep changing), commit, deploy. Re-check stream channels for scheduled election-night streams (`/api/streams`).
+- **Days before:** done on Nov 1: races and markets regenerated, config frozen (see docs/PLAN.md "Config freeze" for what may still change), streams re-checked. CBS, Breaking the Chains and David Pakman had Nov 3 streams scheduled; the resolver picks up the others when they go live.
 - **Oct 28 and Oct 31, 8 am–noon PT:** California runs SOS API test feeds. A CA adapter is not written yet; this is the window to write and test one if wanted.
 - **From 4 pm ET:** start the scraper on the election-night machine (`systemctl --user start midterms-scraper`), wired network, charger in; confirm `/api/status` shows a fresh heartbeat.
 - **5 pm ET:** confirm Georgia's 2026 slug at https://results.sos.ga.gov/results/public/Georgia/elections and fix `config/sources.json` if it is not `2026NovGen`.
@@ -120,7 +120,6 @@ node tests/smoke.browser.mjs <dir> <url>   # screenshots ws1-4, reader, phone in
 ## Open items
 
 - No California adapter yet (CNN covers CA); no OH/TX/AZ/FL/NV/MT/KS adapters (blocked to curl; test from a deployed function before writing them).
-- Supabase is supported in code (`lib/store.mjs`, `db/schema.sql`) but not provisioned; the browser polls rather than subscribing to Realtime.
 - Short share links (`/d/<id>`) are not built; `#l=` links are long but self-contained.
 - Race-level early-vote data (UF Election Lab) is manual-only; not shown.
 - See `docs/RESEARCH.md` §12 for research gaps.
