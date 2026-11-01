@@ -115,14 +115,16 @@ export function createWM({ desk, title = (id) => id, onClose = () => {}, onChang
       place(id, r, (f.ws - S.active) * A.W, 'float', z++);
       if (f.ws === S.active) R.rects[id] = r;
     }
-    const barH = desk.getBoundingClientRect().top + scrollY; // fullscreen also covers the bar and any banner
+    const db = desk.getBoundingClientRect();
+    const barH = db.top + scrollY; // fullscreen also covers the bar and any banner
+    const footH = Math.max(0, innerHeight - db.bottom); // …and the credits line below the desktop
     for (const [id, el] of wins) {
       const w = where(id);
       el.classList.toggle('closed', !w);
       el.classList.toggle('active', id === S.focus && !!w);
       el.classList.toggle('fullscreen', id === R.fullscreen);
       el.classList.toggle('offscreen', !!w && !visible(id));
-      if (id === R.fullscreen) Object.assign(el.style, { left: '0px', top: `${-barH}px`, width: `${A.W}px`, height: `${A.H + barH}px`, transform: 'none', zIndex: 60 });
+      if (id === R.fullscreen) Object.assign(el.style, { left: '0px', top: `${-barH}px`, width: `${A.W}px`, height: `${A.H + barH + footH}px`, transform: 'none', zIndex: 60 });
       el.style.order = String(order(id));
     }
     document.body.classList.toggle('special-open', R.specialOpen);

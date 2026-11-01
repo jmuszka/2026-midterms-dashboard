@@ -19,6 +19,25 @@ import markets from './views/markets.js';
 import trends from './views/trends.js';
 import stocks from './views/stocks.js';
 
+// Attribution footer: every source on screen is named, built from the served config.
+function credits() {
+  const st = app.config.attribution?.states || [];
+  const states = st.length ? `<span title="${esc(st.map((s) => s.name).join(', '))}">state election offices (${st.map((s) => esc(s.state)).join(', ')})</span>` : '';
+  const parts = [
+    `<b>Results</b> ${esc(app.config.attribution?.cnn || 'CNN / AP')} (race calls are AP's)${states ? `; ${states}` : ''}`,
+    '<b>Odds</b> Kalshi, Polymarket, PredictIt (markets, not results)',
+    '<b>Quotes</b> CNBC',
+    '<b>News</b> publishers\' RSS feeds, Google News',
+    '<b>Posts</b> Bluesky, Truth Social',
+    '<b>Searches</b> Google Trends',
+    '<b>Maps</b> US Census Bureau',
+    '<b>Video</b> each channel\'s own player',
+  ];
+  const el = $('#credits');
+  el.innerHTML = `${parts.join(' · ')} · Independent dashboard, not affiliated with any source.`;
+  el.title = el.textContent;
+}
+
 async function main() {
   await loadApp();
   if (app.sim) document.body.classList.add('sim'); // before the WM measures the desktop: the banner takes height
@@ -41,6 +60,7 @@ async function main() {
       <p class="muted">Results: CNN (AP) and official state feeds. Markets: Kalshi, Polymarket, PredictIt. Calls are only shown when a source makes them.</p>`,
   });
   L.init(wm);
+  credits();
   window.wm = wm; // for tests and the console, as before
   setupReader();
   await L.restore(presets);

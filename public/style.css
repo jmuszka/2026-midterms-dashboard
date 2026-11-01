@@ -476,3 +476,8 @@ kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(
 /* data-state note in the panel head (errors, stale data): sits before the meta line and never wraps */
 .panel-state { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 .panel-state:empty { display: none; }
+
+/* attribution footer: one line on desktop (full text in the tooltip), wraps on phones */
+.credits { flex: none; height: 20px; line-height: 20px; padding: 0 12px; font-size: 10.5px; color: var(--muted); background: rgba(12, 15, 20, .92); border-top: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.credits b { color: var(--text-2); font-weight: 600; }
+@media (max-width: 900px) { .credits { height: auto; line-height: 1.5; padding: 10px 16px 14px; white-space: normal; } }

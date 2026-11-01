@@ -48,7 +48,8 @@ await load();
 check('ws1 shows 5 windows', (await visibleWins()) === 'balance-1,map-1,stream-1,feed-1,news-1', await visibleWins());
 const [m, v, n, x] = [await rect('map-1'), await rect('stream-1'), await rect('feed-1'), await rect('news-1')];
 const barH = await ev(`document.getElementById('bar').offsetHeight`);
-check('outer gap 20px', m[0] === 20 && v[0] + v[2] === 1900 && x[1] + x[3] === 1080 - 20, JSON.stringify({ m, v, x }));
+const deskBottom = await ev(`Math.round(document.getElementById('desktop').getBoundingClientRect().bottom)`); // the credits footer sits below the desktop
+check('outer gap 20px', m[0] === 20 && v[0] + v[2] === 1900 && x[1] + x[3] === deskBottom - 20, JSON.stringify({ m, v, x, deskBottom }));
 check('inner gap 10px', v[0] - (m[0] + m[2]) === 10 && n[1] - (v[1] + v[3]) === 10 && x[0] - (n[0] + n[2]) === 10);
 check('active border is the gradient', (await ev(`getComputedStyle(document.querySelector('.win.active')).backgroundImage`)).includes('linear-gradient'));
 await shot('wm-default.png');
