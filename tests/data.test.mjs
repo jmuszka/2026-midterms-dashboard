@@ -32,6 +32,8 @@ test('party labels normalise', () => {
 test('CNN race keys map to manifest ids', () => {
   assert.equal(cnnRaceId('2026-SG-TX'), 'S-TX');
   assert.equal(cnnRaceId('2026-S2G-OH'), 'S-OH-special');
+  assert.equal(cnnRaceId('2026-SP-OH'), 'S-OH-special'); // how CNN's 2026 file actually lists the specials (seen 2026-11-02)
+  assert.equal(cnnRaceId('2026-SP-FL'), 'S-FL-special');
   assert.equal(cnnRaceId('2026-HG-CA-22'), 'H-CA-22');
   assert.equal(cnnRaceId('2026-HG-AK-1'), 'H-AK-00');
   assert.equal(cnnRaceId('2026-GG-GA'), 'G-GA');
