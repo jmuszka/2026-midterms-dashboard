@@ -12,7 +12,7 @@ const SIDE = ['DEM', 'IND', 'GOP'];
 export function tally(ch, results) {
   const bal = app.config.balance[ch];
   const races = app.manifest.filter((m) => m.chamber === ch);
-  const t = { called: {}, leading: {}, holdover: { ...(bal.holdover || {}) }, none: 0, total: bal.total, majority: bal.majority || null, races: races.length, flips: [], rated: {} };
+  const t = { called: {}, leading: {}, holdover: { ...(bal.holdover || {}) }, none: 0, total: bal.total, majority: bal.majority || null, races: races.length, flips: [], rated: {}, gain: {}, loss: {} };
   for (const m of races) {
     const r = results?.[m.id];
     const s = raceState(r);
@@ -20,6 +20,9 @@ export function tally(ch, results) {
     if (s.status === 'called') { t.called[p] = (t.called[p] || 0) + 1; if (m.incumbent && r.winner !== m.incumbent.party && (r.flip ?? true)) t.flips.push(m.id); }
     else if (s.status === 'leading') t.leading[p] = (t.leading[p] || 0) + 1;
     else t.none++;
+    // net change: a seat won or led by a party other than the one holding it now (vacant seats: no holder, not counted)
+    const held = m.incumbent?.party;
+    if (p && held && p !== held && (s.status === 'called' || s.status === 'leading')) { t.gain[p] = (t.gain[p] || 0) + 1; t.loss[held] = (t.loss[held] || 0) + 1; }
     // pre-results expectation from the consensus rating
     const sc = m.consensus?.score ?? 0;
     const k = sc >= 0.75 ? 'DEM' : sc <= -0.75 ? 'GOP' : 'TOSS';
@@ -29,11 +32,9 @@ export function tally(ch, results) {
   t.withLeads = (p) => t.seats(p) + (t.leading[p] || 0);
   // Senate: independents caucus with Democrats (holdovers King and Sanders are already in DEM)
   t.control = (p) => (ch === 'S' && p === 'DEM' ? t.seats('DEM') + t.seats('IND') : t.seats(p));
-  t.net = (p) => {
-    const cur = bal.current?.[p];
-    if (cur == null || ch === 'G') return null;
-    return t.withLeads(p) - cur;
-  };
+  // seats gained minus seats lost so far (won or leading), against who holds each seat now. It used to
+  // be (won + leading + not up) - seats held, which read -214 for House Democrats before any count.
+  t.net = (p) => (t.gain[p] || 0) - (t.loss[p] || 0);
   return t;
 }
 

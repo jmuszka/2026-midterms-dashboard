@@ -36,7 +36,7 @@ function tile(ch, t, p) {
   const lead = t.leading[p] || 0;
   const ctrl = ch === 'S' && p === 'DEM' && t.seats('IND') ? ` <small>+${t.seats('IND')} I caucus</small>` : '';
   return `<div class="tile" style="--c:${app.partyColor(p)}">
-    <div class="name"><span>${esc(app.partyName(p))}</span>${net != null ? `<span class="net ${net > 0 ? 'up' : net < 0 ? 'down' : ''}" title="Net change vs current">${signed(net, 0)}</span>` : ''}</div>
+    <div class="name"><span>${esc(app.partyName(p))}</span>${net ? `<span class="net ${net > 0 ? 'up' : 'down'}" title="Net change: seats gained minus seats lost so far (won or leading), against the party holding each seat now">${signed(net, 0)}</span>` : ''}</div>
     <div class="seats">${called + lead}${ctrl}</div>
     <div class="sub">${called} won${lead ? ` · ${lead} leading` : ''}${t.holdover[p] ? ` · ${t.holdover[p]} not up` : ''}</div>
   </div>`;
