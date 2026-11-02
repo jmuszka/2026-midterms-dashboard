@@ -1181,66 +1181,56 @@
       },
       "administration": {
         "name": "Trump administration",
-        "_note": "Curated 2026-11-02. Truth Social accounts looked up live (ids from /api/v1/accounts/lookup; Bondi, Lutnick post rarely there). The rest post on X only: handles from memory, unverified until X_BEARER_TOKEN is set. Vance has no Truth Social account under his name.",
+        "_note": "Curated 2026-11-02. X only: Truth Social answers the adapter with 403 and only Trump's list has an RSS fallback, so the cabinet is tracked on X (handles from memory, unverified until X_BEARER_TOKEN is set).",
         "accounts": [
           {
-            "platform": "truthsocial",
+            "platform": "x",
             "handle": "WhiteHouse",
-            "id": "113686491998750334",
             "name": "The White House"
           },
           {
-            "platform": "truthsocial",
+            "platform": "x",
             "handle": "SecRubio",
-            "id": "114399447870311163",
             "name": "Marco Rubio"
           },
           {
-            "platform": "truthsocial",
+            "platform": "x",
             "handle": "PeteHegseth",
-            "id": "107889619433136341",
             "name": "Pete Hegseth"
           },
           {
-            "platform": "truthsocial",
+            "platform": "x",
             "handle": "AGPamBondi",
-            "id": "114376103100256575",
             "name": "Pam Bondi"
           },
           {
-            "platform": "truthsocial",
-            "handle": "KristiNoem",
-            "id": "108523423537918921",
+            "platform": "x",
+            "handle": "Sec_Noem",
             "name": "Kristi Noem"
           },
           {
-            "platform": "truthsocial",
-            "handle": "TulsiGabbard",
-            "id": "107834674875471949",
+            "platform": "x",
+            "handle": "DNIGabbard",
             "name": "Tulsi Gabbard"
           },
           {
-            "platform": "truthsocial",
-            "handle": "LindaMcMahon",
-            "id": "107890756042613982",
+            "platform": "x",
+            "handle": "EDSecMcMahon",
             "name": "Linda McMahon"
           },
           {
-            "platform": "truthsocial",
-            "handle": "LeeZeldin",
-            "id": "107860400261224642",
+            "platform": "x",
+            "handle": "epaleezeldin",
             "name": "Lee Zeldin"
           },
           {
-            "platform": "truthsocial",
-            "handle": "DougCollins",
-            "id": "107839068149183849",
+            "platform": "x",
+            "handle": "SecVetAffairs",
             "name": "Doug Collins"
           },
           {
-            "platform": "truthsocial",
+            "platform": "x",
             "handle": "howardlutnick",
-            "id": "112909670691943534",
             "name": "Howard Lutnick"
           },
           {
