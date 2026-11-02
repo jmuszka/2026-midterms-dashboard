@@ -58,7 +58,6 @@ export default {
         <button type="button" class="prev" title="Previous source">‹</button>
         <select class="pick" aria-label="Stream source"></select>
         <button type="button" class="next" title="Next source">›</button>
-        <button type="button" class="mute"></button>
         <form class="inline-form"><input type="text" placeholder="Paste a YouTube link" aria-label="YouTube URL or ID"><button type="submit">Load</button></form>
         <span class="live-note muted"></span>
       </div><div class="video-box"><iframe title="Live stream" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -83,7 +82,6 @@ export default {
       leaveReplay();
       const url = embedUrl(src, live[src.id], settings.muted);
       if (frame.dataset.src !== url) { frame.src = url; frame.dataset.src = url; }
-      body.querySelector('.mute').textContent = settings.muted ? 'Unmute' : 'Mute';
       const l = live[src.id];
       body.querySelector('.live-note').textContent = l?.status === 'live' ? `Live: ${l.title || ''}` : l?.status === 'upcoming' ? `Scheduled: ${l.title || ''}` : l?.status === 'offline' ? 'Not live right now' : '';
       ctx.title(src.name);
@@ -98,11 +96,6 @@ export default {
     body.querySelector('.prev').addEventListener('click', () => step(-1));
     body.querySelector('.next').addEventListener('click', () => step(1));
     pick.addEventListener('change', () => { if (pick.value === 'custom') return; settings.source = pick.value; settings.custom = ''; ctx.save({ source: pick.value, custom: '' }); load(); });
-    body.querySelector('.mute').addEventListener('click', () => {
-      settings.muted = !settings.muted; ctx.save({ muted: settings.muted });
-      if (playerReady) { try { settings.muted ? player.mute() : player.unMute(); } catch {} }
-      load();
-    });
     body.querySelector('form').addEventListener('submit', (e) => {
       e.preventDefault();
       const id = parseYouTube(body.querySelector('form input').value);
