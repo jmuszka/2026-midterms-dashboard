@@ -277,3 +277,17 @@ test('timeline bundle: trends list in force at the start plus each later change;
   const inc = await bundleFromStore(st, { since: '2026-11-03T22:00:00.000Z', now });
   assert.deepEqual(inc.trends.map(([, items]) => items[0].term), ['results']);
 });
+
+test('county tables: compact stored form expands back to the same rows', async () => {
+  const { compactCounties, expandCounties } = await import('../lib/sources/results.mjs');
+  const list = [
+    { fips: '04013', name: 'Maricopa', total: 300, pct: 40, candidates: [{ name: 'A', party: 'DEM', votes: 160 }, { name: 'B', party: 'GOP', votes: 140 }] },
+    { fips: '04019', name: 'Pima', total: 100, pct: 20, candidates: [{ name: 'B', party: 'GOP', votes: 45 }, { name: 'A', party: 'DEM', votes: 55 }] },
+  ];
+  const c = compactCounties(list);
+  assert.deepEqual(c.cand, [['A', 'DEM'], ['B', 'GOP']]);
+  assert.deepEqual(c.rows[1], ['04019', 'Pima', 100, 20, [55, 45]]);
+  const back = expandCounties(c);
+  assert.deepEqual(back[0], list[0]);
+  assert.deepEqual(back[1].candidates.map((x) => x.votes), [55, 45]);
+});

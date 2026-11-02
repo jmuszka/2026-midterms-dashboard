@@ -5,6 +5,8 @@
     "cnn": {
       "enabled": true,
       "base": "https://politics.api.cnn.io/results",
+      "countyInterval": 60,
+      "countyBatch": 20,
       "year": 2026,
       "contests": [
         "SG",
