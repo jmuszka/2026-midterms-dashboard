@@ -172,7 +172,8 @@ export default {
 
     let timer = null;
     const arm = () => { clearInterval(timer); if (+settings.cycle > 0) timer = setInterval(() => step(1), settings.cycle * 1000); };
-    const un = hub.subscribe('streams', (s) => { live = s.data?.streams || live; fillPicker(); load(); ctx.state('streams', s.error ? dataNote(s, 'stream list') : ''); });
+    let seen = null;
+    const un = hub.subscribe('streams', (s) => { if (s.data && s.data === seen) return; seen = s.data; live = s.data?.streams || live; fillPicker(); load(); ctx.state('streams', s.error ? dataNote(s, 'stream list') : ''); });
     fillPicker(); load(); arm();
     return {
       destroy() { un(); unClock(); clearInterval(timer); clearInterval(drift); frame.src = 'about:blank'; try { player?.destroy(); } catch {} },

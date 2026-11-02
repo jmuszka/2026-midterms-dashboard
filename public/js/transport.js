@@ -22,7 +22,9 @@ function source(key) {
   if (key === 'news') return T.newsAt(t);
   if (key === 'stocks') return T.stocksAt(t);
   if (key.startsWith('social:')) return T.postsAt(key.slice(7), t);
-  return undefined; // streams, trends: stay live
+  if (key === 'trends') return T.trendsAt(t);
+  if (key === 'streams') return T.streamsAt(t);
+  return undefined;
 }
 
 export function startTransport() {

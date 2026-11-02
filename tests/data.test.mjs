@@ -263,3 +263,17 @@ test('disk archive: one gzip file per changed snapshot, unchanged content (bar t
   assert.equal(JSON.parse(zlib.gunzipSync(fs.readFileSync(`${dir}/social_trump/2026-11-04/${files[1]}`))).posts.length, 2);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('timeline bundle: trends list in force at the start plus each later change; since= sends only the changes', async () => {
+  const { bundleFromStore } = await import('../lib/timeline.mjs');
+  const { _memoryStore } = await import('../lib/store.mjs');
+  const st = _memoryStore();
+  await st.addSnapshot('trends', '2026-11-03T18:00:00.000Z', [{ term: 'early' }]);
+  await st.addSnapshot('trends', '2026-11-03T21:00:00.000Z', [{ term: 'polls' }]);
+  await st.addSnapshot('trends', '2026-11-04T01:00:00.000Z', [{ term: 'results' }]);
+  const now = Date.parse('2026-11-04T03:00:00Z');
+  const b = await bundleFromStore(st, { now });
+  assert.deepEqual(b.trends.map(([, items]) => items[0].term), ['early', 'polls', 'results']);
+  const inc = await bundleFromStore(st, { since: '2026-11-03T22:00:00.000Z', now });
+  assert.deepEqual(inc.trends.map(([, items]) => items[0].term), ['results']);
+});

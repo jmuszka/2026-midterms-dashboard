@@ -53,6 +53,8 @@ function merge(add) {
     into.push(...ps.filter((p) => !seen.has(p.post.id)));
   }
   for (const [id, rows] of Object.entries(add.streams || {})) (b.streams[id] ||= []).push(...rows);
+  const tr = (b.trends ||= []);
+  for (const row of add.trends || []) if (!tr.length || row[0] > tr[tr.length - 1][0]) tr.push(row);
   if (add.videos) { b.videos = add.videos; b.archive = add.archive || {}; } // always sent in full
   if (add.topics?.length) b.topics = add.topics; // names only, always sent in full
   if (add.to && (!b.to || add.to > b.to)) b.to = add.to;
@@ -227,6 +229,29 @@ export function streamAt(id, ms) {
   const st = Date.parse(v.start), len = v.length ? v.length * 1000 : null;
   if (len != null && ms > st + len) return { kind: 'none', reason: 'not-archived' };
   return { kind: 'video', videoId, mode: 'vod', pos: Math.max(0, (ms - st) / 1000), title: v.title };
+}
+
+// Google Trends list in force at a moment (recorded each time it changed)
+export function trendsAt(ms) {
+  const b = tl.bundle;
+  if (!b || b.simulated) return undefined;
+  const rows = b.trends || [];
+  const i = at(rows.map((r) => r[0]), Math.floor(ms / 1000));
+  return { items: i < 0 ? [] : rows[i][1], ranAt: i < 0 ? null : new Date(rows[i][0] * 1000).toISOString(), replay: true };
+}
+// which video and status each channel had at a moment (the stream picker's live/scheduled marks)
+const streamsMemo = { key: null, value: null };
+export function streamsAt(ms) {
+  const b = tl.bundle;
+  if (!b || b.simulated) return undefined;
+  const s = Math.floor(ms / 1000), streams = {}, idx = [];
+  for (const [id, ticks] of Object.entries(b.streams || {})) {
+    const i = at(ticks.map((x) => x[0]), s); idx.push(i);
+    if (i >= 0) { const [, videoId, status, title] = ticks[i]; streams[id] = { id, status, videoId, title }; }
+  }
+  const key = idx.join(','); // same rows: same object, so windows can skip a redraw
+  if (streamsMemo.key !== key) { streamsMemo.key = key; streamsMemo.value = { streams, replay: true }; }
+  return streamsMemo.value;
 }
 
 // density of the night's notable events per bucket, for the strip's markers
