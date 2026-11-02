@@ -249,3 +249,17 @@ test('social: mergeLists joins every list, keeps a shared post once with all its
   assert.equal(m.ranAt, '2026-11-03T01:05:00Z');
   assert.equal(m.stale, true);
 });
+
+test('disk archive: one gzip file per changed snapshot, unchanged content (bar timings) skipped', async () => {
+  const os = await import('node:os'), zlib = await import('node:zlib');
+  const { diskArchive } = await import('../lib/archive.mjs');
+  const dir = fs.mkdtempSync(`${os.tmpdir()}/archive-test-`);
+  const save = diskArchive(dir);
+  assert.equal(await save('social:trump', { ranAt: '2026-11-04T01:00:00.000Z', ms: 120, posts: [{ id: 1 }] }), true);
+  assert.equal(await save('social:trump', { ranAt: '2026-11-04T01:00:15.000Z', ms: 90, posts: [{ id: 1 }] }), false);
+  assert.equal(await save('social:trump', { ranAt: '2026-11-04T01:00:30.000Z', ms: 90, posts: [{ id: 1 }, { id: 2 }] }), true);
+  const files = fs.readdirSync(`${dir}/social_trump/2026-11-04`).sort();
+  assert.deepEqual(files, ['01-00-00Z.json.gz', '01-00-30Z.json.gz']);
+  assert.equal(JSON.parse(zlib.gunzipSync(fs.readFileSync(`${dir}/social_trump/2026-11-04/${files[1]}`))).posts.length, 2);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

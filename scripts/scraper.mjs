@@ -7,6 +7,7 @@
 //   node scripts/scraper.mjs --standby       # write only while no other scraper's heartbeat is fresh
 //   node scripts/scraper.mjs --once          # one cycle, then exit (smoke test)
 //   node scripts/scraper.mjs --tick 15       # seconds between cycles (default 15)
+//   node scripts/scraper.mjs --archive DIR   # local raw archive (default ./archive; --no-archive turns it off)
 //
 // Needs SUPABASE_URL and SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY).
 // Keep the machine awake: see scripts/scraper.service (systemd-inhibit).
@@ -34,7 +35,8 @@ if (!process.env.SUPABASE_URL || !(process.env.SUPABASE_SECRET_KEY || process.en
   console.error('scraper: SUPABASE_URL and SUPABASE_SECRET_KEY are required (run: npx vercel env pull .env --yes)');
   process.exit(1);
 }
-const { runPoll, scraperStatus, setClockSkew } = await import('../lib/poll.mjs');
+const { runPoll, scraperStatus, setClockSkew, setArchive } = await import('../lib/poll.mjs');
+const { diskArchive } = await import('../lib/archive.mjs');
 const { getStore } = await import('../lib/store.mjs');
 
 const TICK = (+opt('--tick', 15) || 15) * 1000;
@@ -67,7 +69,10 @@ if (other?.host && other.host !== HOST && other.age != null && other.age < STALE
   console.error(`scraper: another scraper (${other.host}) wrote a heartbeat ${other.age}s ago. Stop it first, or run with --standby.`);
   process.exit(1);
 }
-log(`scraper on ${HOST} → ${process.env.SUPABASE_URL} (tick ${TICK / 1000}s${STANDBY ? ', standby' : ''})`);
+// every changed task snapshot also goes to disk, gzipped: the complete record (lib/archive.mjs)
+const ARCHIVE = flag('--no-archive') ? null : path.resolve(opt('--archive', path.join(ROOT, 'archive')));
+if (ARCHIVE) setArchive(diskArchive(ARCHIVE));
+log(`scraper on ${HOST} → ${process.env.SUPABASE_URL} (tick ${TICK / 1000}s${STANDBY ? ', standby' : ''}; archive ${ARCHIVE || 'off'})`);
 
 let running = false, stopping = false, cycles = 0, startedAt = 0;
 const STUCK_AFTER = 90e3;

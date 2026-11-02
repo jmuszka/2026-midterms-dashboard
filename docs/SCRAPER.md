@@ -75,6 +75,10 @@ The cycle ends with a `heartbeat` row: time, host, version, and each task that r
 
 A failing source never stops the cycle: each adapter fails soft, and the error appears in the heartbeat's task map and in the window that shows that source.
 
+### Local raw archive
+
+Every task snapshot whose content changed since the last one is also written to disk, gzipped, as `archive/<task>/<YYYY-MM-DD>/<HH-MM-SS>Z.json.gz` (UTC; `social:trump` becomes `social_trump`). Supabase holds what the site replays; this folder holds everything every source said, for research after the night, including what the timeline does not show. `--archive DIR` writes elsewhere, `--no-archive` turns it off. One full cycle is about 300 KB, and unchanged tasks write nothing, so a 12-hour night stays well under 1 GB. The folder is in `.gitignore`: back it up yourself, together with a database dump (`pg_dump "$POSTGRES_URL_NON_POOLING" -Fc -f midterms-2026.dump`).
+
 ## Safeguards
 
 - **Clock drift.** At start and every 5 minutes the scraper compares its clock with Supabase's (`Date` header) and stamps every write with corrected time. It warns above 2 seconds and records the correction in the heartbeat (`_clock`). This was found the hard way: the owner's laptop had NTP off and ran 98 seconds slow, which made every heartbeat look stale.
@@ -143,6 +147,7 @@ All in `public`, created by `db/schema.sql` (idempotent: `psql "$POSTGRES_URL_NO
 3. **5 pm ET:** confirm Georgia's 2026 results slug (see AGENTS.md runbook).
 4. **When the official streams are announced:** add each one to the permanent archive (below) so replays survive after YouTube trims or privatises the live recordings.
 5. **After the night:** leave the scraper running at a slower cadence (`--tick 60`) while California and Alaska count, or stop it; the site keeps serving everything recorded.
+6. **Keep the record:** copy `archive/` somewhere safe and take a `pg_dump` of Supabase (see Local raw archive). Supabase's free plan pauses idle projects after a week; the dump is what lasts.
 
 ## Stream archive
 
