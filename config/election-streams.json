@@ -1,0 +1,17 @@
+{
+  "_comment": "Election-night broadcast per stream id (config/sources.json streams.list), pinned permanently: the stream window plays this video before (waiting room), during (live) and after (recording), live and in replay. Filled by: node scripts/find-election-streams.mjs (run again on Nov 3 afternoon as networks publish theirs). Unpinned channels only show a live stream whose title is about the election, and the scraper pins the first one it sees.",
+  "videos": {
+    "nbc": "yifzmO4ueG8",
+    "cbs": "psO-rZpWp7I",
+    "pbs": "3ABLwTR8Iqg",
+    "hill": "Z2TKdIjaPjc",
+    "usatoday": "mgzAKt3Mow0",
+    "cnnheadlines": "MPtBOhQ_ckw",
+    "msnow": "9TJCzGGDI9o",
+    "cbc": "8nOp-tZjk6Q",
+    "meidas": "cUeJSNR1xJM",
+    "pakman": "pHiM7g3u2A8",
+    "btc": "SEqjgdf0EMc",
+    "zeteo": "m4UaAGFTPVs"
+  }
+}

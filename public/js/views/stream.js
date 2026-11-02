@@ -39,7 +39,10 @@ function embedUrl(src, live) {
   if (src.platform === 'custom') return `https://www.youtube.com/embed/${src.videoId}?autoplay=1&mute=${mute}`;
   if (src.platform === 'twitch') return `https://player.twitch.tv/?channel=${encodeURIComponent(src.channel)}&parent=${location.hostname}&muted=${!!muted}&autoplay=true`;
   if (src.platform === 'kick') return `https://player.kick.com/${encodeURIComponent(src.channel)}?autoplay=true&muted=${!!muted}`;
-  if (live?.videoId && (live.status === 'live' || live.status === 'upcoming')) return `https://www.youtube.com/embed/${live.videoId}?autoplay=1&mute=${mute}`;
+  // election-only (lib/sources/streams.mjs): the channel's election broadcast, before, during or after
+  // (a pinned recording); nothing at all when it has none, never its everyday feed
+  if (live?.videoId && (live.status === 'live' || live.status === 'upcoming' || live.pinned)) return `https://www.youtube.com/embed/${live.videoId}?autoplay=1&mute=${mute}`;
+  if (!live || live.status !== 'unknown') return 'about:blank'; // only Twitch (status unknown) falls back to the channel player
   return `https://www.youtube.com/embed/live_stream?channel=${src.channel}&autoplay=1&mute=${mute}`;
 }
 
@@ -84,7 +87,10 @@ export default {
       const url = embedUrl(src, live[src.id]);
       if (frame.dataset.src !== url) { frame.src = url; frame.dataset.src = url; }
       const l = live[src.id];
-      body.querySelector('.live-note').textContent = l?.status === 'live' ? `Live: ${l.title || ''}` : l?.status === 'upcoming' ? `Scheduled: ${l.title || ''}` : l?.status === 'offline' ? 'Not live right now' : '';
+      body.querySelector('.live-note').textContent = l?.status === 'live' ? `Live: ${l.title || ''}`
+        : l?.status === 'upcoming' ? `Scheduled${l.scheduledStart ? ` ${etTime(l.scheduledStart)} ET` : ''}: ${l.title || ''}`
+        : l?.pinned && l.videoId ? `Recording: ${l.title || ''}`
+        : l?.status === 'offline' || l?.status === 'unavailable' ? 'No election coverage on this channel yet' : '';
       ctx.title(src.name);
     }
     const step = (d) => {

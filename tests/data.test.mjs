@@ -323,3 +323,18 @@ test('timeline segments: hour pieces plus the live tail hold exactly the rows of
   assert.equal(s2.news.length, 1);
   assert.equal(s1.from, '2026-11-03T20:00:00.000Z'); assert.equal(s1.to, '2026-11-03T21:00:00.000Z');
 });
+
+test('streams, election-only: live election coverage is used and learned; everyday feeds are not', async () => {
+  const { electionOnly, ELECTION_TITLE } = await import('../lib/sources/streams.mjs');
+  const yt = { id: 'nbc', platform: 'youtube' };
+  const live = await electionOnly(yt, { status: 'live', videoId: 'aaaaaaaaaaa', title: 'WATCH LIVE: 2026 Midterm Election Results' }, {});
+  assert.equal(live.status, 'live'); assert.equal(live.learned, 'aaaaaaaaaaa');
+  const known = await electionOnly(yt, { status: 'live', videoId: 'aaaaaaaaaaa', title: 'Election night live' }, { nbc: ['aaaaaaaaaaa'] });
+  assert.equal(known.learned, undefined); assert.equal(known.pinned, true);
+  const everyday = await electionOnly({ id: 'dw', platform: 'youtube' }, { status: 'live', videoId: 'bbbbbbbbbbb', title: 'DW News livestream | Headline news' }, {});
+  assert.equal(everyday.status, 'offline'); assert.equal(everyday.videoId, null);
+  const failed = await electionOnly({ id: 'x', platform: 'youtube' }, { status: 'error', error: '429' }, {});
+  assert.equal(failed.status, 'error'); assert.equal(failed.videoId, null);
+  assert.equal(ELECTION_TITLE.test('LIVE: Ossoff and Warnock GET OUT THE VOTE in Georgia!!!'), true); // why the scanner only trusts scheduled times before Nov 3
+  assert.equal(ELECTION_TITLE.test('PBS News Hour live episode, Nov. 2, 2026'), false);
+});
