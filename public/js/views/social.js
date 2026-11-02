@@ -7,8 +7,8 @@ function linkify(text) {
     .replace(/(https?:\/\/[^\s<]+)/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\//, '').slice(0, 42)}${u.length > 50 ? '…' : ''}</a>`)
     .replace(/(^|\s)@([A-Za-z0-9_.-]{1,40}[A-Za-z0-9_])/g, (m, pre, h) => `${pre}<span class="mention">@${h}</span>`);
 }
-const PLATFORM = { bluesky: 'Bluesky', x: 'X', truthsocial: 'Truth Social' };
-function post(p) {
+export const PLATFORM = { bluesky: 'Bluesky', x: 'X', truthsocial: 'Truth Social' };
+export function post(p) {
   const a = p.author || {};
   const media = (p.media || []).filter((m) => m.url || m.link);
   return `<article class="post p-${p.platform}">
@@ -25,7 +25,7 @@ function post(p) {
 }
 
 export default {
-  type: 'social', name: 'Social feed',
+  type: 'social', name: 'Social list (one list)',
   defaults: { list: 'analysts' },
   settings: [{ key: 'list', label: 'List', options: () => Object.entries(app.config.social).map(([k, v]) => [k, v.name]) }],
   title: (s) => app.config.social[s.list]?.name || 'Social',

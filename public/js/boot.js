@@ -16,6 +16,7 @@ import timeline from './views/timeline.js';
 import stream from './views/stream.js';
 import news from './views/news.js';
 import social from './views/social.js';
+import posts from './views/posts.js';
 import markets from './views/markets.js';
 import trends from './views/trends.js';
 import stocks from './views/stocks.js';
@@ -45,7 +46,7 @@ function credits() {
 async function main() {
   await loadApp();
   if (app.sim) document.body.classList.add('sim'); // before the WM measures the desktop: the banner takes height
-  L.registerTypes([balance, map, chamber, feed, race, races, timeline, stream, news, social, markets, trends, stocks]);
+  L.registerTypes([balance, map, chamber, feed, race, races, timeline, stream, news, posts, social, markets, trends, stocks]);
   const presets = app.config.presets;
   const wm = createWM({
     desk: $('#desktop'),
@@ -54,9 +55,9 @@ async function main() {
     onChange: L.persist,
     launcherItems: (q, loc) => L.launcherItems(q, loc, presets),
     onLaunch: (it) => {
-      const [kind, arg] = it.action;
+      const [kind, arg, settings] = it.action;
       if (kind === 'focus') wm.open(arg);
-      if (kind === 'new') L.create(arg);
+      if (kind === 'new') L.create(arg, settings || {});
       if (kind === 'preset') { L.apply(L.preset(presets, arg)); toast(`Loaded preset <b>${esc(presets[arg].name)}</b>`); }
     },
     helpExtra: `<h3>Dashboard</h3><p>Every window has a gear for its settings; the launcher (Panels) opens new windows of any type and loads presets. <b>Share</b> copies a link that carries this whole layout.</p>

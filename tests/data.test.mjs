@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { parseCnn, cnnRaceId, parseNcsbe, parseEnhancedVoting, parseClarity, mergeResults } from '../lib/sources/results.mjs';
 import { diffResults, diffMarkets, isFlip } from '../lib/diff.mjs';
 import { simulate } from '../lib/sim.mjs';
-import { normBsky, normTruth, truthFromRss } from '../lib/sources/social.mjs';
+import { normBsky, normTruth, truthFromRss, mergeLists } from '../lib/sources/social.mjs';
 import { partyId, finishRace, matchCandidate } from '../lib/model.mjs';
 
 const require = createRequire(import.meta.url);
@@ -236,4 +236,16 @@ test('full timeline bundle starts at 3 pm ET on election day; stocks 24 h earlie
   assert.equal(b.from >= NIGHT_FROM, true);
   const inc = await bundleFromStore(st, { since: '2026-10-01T00:00:00.000Z', now });
   assert.deepEqual(inc.markets['control:S'].v, [0.4, 0.5]);
+});
+
+test('social: mergeLists joins every list, keeps a shared post once with all its lists, newest first', () => {
+  const a = { ranAt: '2026-11-03T01:00:00Z', posts: [{ id: 'p1', createdAt: '2026-11-03T00:50:00Z', platform: 'bluesky', acct: 'x.bsky.social', author: { handle: 'x.bsky.social' } }, { id: 'p2', createdAt: '2026-11-03T00:40:00Z', platform: 'bluesky', author: { handle: 'y.bsky.social' } }], errors: [] };
+  const b = { ranAt: '2026-11-03T01:05:00Z', posts: [{ id: 'p1', createdAt: '2026-11-03T00:50:00Z', platform: 'bluesky', acct: 'x.bsky.social', author: { handle: 'x.bsky.social' } }, { id: 'p3', createdAt: '2026-11-03T00:55:00Z', platform: 'x', author: { handle: 'z' } }], errors: ['X accounts skipped: X_BEARER_TOKEN not set'], stale: true };
+  const m = mergeLists({ one: a, two: b, three: null });
+  assert.deepEqual(m.posts.map((p) => p.id), ['p3', 'p1', 'p2']);
+  assert.deepEqual(m.posts[1].lists, ['one', 'two']);
+  assert.equal(m.posts[2].acct, 'y.bsky.social'); // older stored posts without acct: the author stands in
+  assert.deepEqual(m.errors, ['X accounts skipped: X_BEARER_TOKEN not set']);
+  assert.equal(m.ranAt, '2026-11-03T01:05:00Z');
+  assert.equal(m.stale, true);
 });

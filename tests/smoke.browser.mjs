@@ -136,6 +136,22 @@ await ev(`wm.workspace(3)`); await sleep(1200); await shot('ws3-light.png');
 await ev(`wm.workspace(1)`); await sleep(1200);
 check('favicon.svg is served as SVG', await ev(`fetch('/favicon.svg').then(r => r.ok && /svg/.test(r.headers.get('content-type')) && r.text()).then(t => /<path fill="#3A7BE0"/.test(t) && /<path fill="#E0453A"/.test(t))`));
 
+// the everyone feed: launcher preset creates a posts window, posts from more than one list, checkbox settings filter
+await ev(`wm.launcher(true)`); await sleep(200);
+await ev(`(() => { const i = document.querySelector('#launcher-input'); i.value = 'politicians'; i.dispatchEvent(new Event('input')); })()`); await sleep(200);
+await ev(`document.querySelector('#launcher-list li[data-i]').click()`); await sleep(400);
+check('launcher "Politicians feed" preset created a posts window with group settings', await ev(`(() => { const w = document.querySelector('[data-win="posts-1"]'); const s = JSON.parse(localStorage.getItem('us-dash-layout-v1')).inst['posts-1']?.settings; return !!w && Array.isArray(s?.lists) && s.lists.includes('senators'); })()`));
+check('everyone feed shows posts from several groups', await waitFor(`(() => { const n = document.querySelectorAll('[data-win="posts-1"] .post').length; return n > 20 && /of \\d+ posts/.test(document.querySelector('[data-win="posts-1"] .panel-meta').textContent); })()`, 40000), await ev(`document.querySelector('[data-win="posts-1"] .panel-meta')?.textContent`));
+await ev(`document.querySelector('[data-win="posts-1"] .gear').click()`); await sleep(300);
+check('settings popover has platform, group and people checkboxes, and fits the viewport', await ev(`document.querySelector('#popover').getBoundingClientRect().bottom <= innerHeight && document.querySelectorAll('#popover input[data-multi="platforms"]').length === 3 && document.querySelectorAll('#popover input[data-multi="lists"]').length >= 8 && document.querySelectorAll('#popover input[data-multi="people"]').length > 100`), await ev(`document.querySelectorAll('#popover input[data-multi="people"]').length`));
+await ev(`(() => { const b = document.querySelector('#popover input[data-multi="platforms"][value="bluesky"]'); b.checked = false; b.dispatchEvent(new Event('change', { bubbles: true })); })()`); await sleep(500);
+check('unticking Bluesky leaves no posts (X has no token, Truth Social is not in these groups)', await ev(`document.querySelectorAll('[data-win="posts-1"] .post').length === 0 && JSON.stringify(JSON.parse(localStorage.getItem('us-dash-layout-v1')).inst['posts-1'].settings.platforms) === '["x","truthsocial"]'`), await ev(`document.querySelectorAll('[data-win="posts-1"] .post').length`));
+await ev(`document.querySelector('#popover a[data-bulk="platforms"][data-on="1"]').click()`); await sleep(500);
+check('"all" restores every platform (saved as null) and the posts return', await ev(`JSON.parse(localStorage.getItem('us-dash-layout-v1')).inst['posts-1'].settings.platforms === null && document.querySelectorAll('[data-win="posts-1"] .post').length > 20`));
+await shot('posts-settings.png');
+await ev(`document.querySelector('#popover').hidden = true`);
+await ev(`wm.killactive('posts-1')`); await sleep(300);
+
 // share link round trip
 const link = await ev(`(async () => { const m = await import('/js/layout.js'); return m.shareLink(); })()`);
 check('share link generated', typeof link === 'string' && /#l=z/.test(link), String(link).slice(0, 80) + '…');

@@ -1178,6 +1178,147 @@
             "name": "Van Jones"
           }
         ]
+      },
+      "administration": {
+        "name": "Trump administration",
+        "_note": "Curated 2026-11-02. Truth Social accounts looked up live (ids from /api/v1/accounts/lookup; Bondi, Lutnick post rarely there). The rest post on X only: handles from memory, unverified until X_BEARER_TOKEN is set. Vance has no Truth Social account under his name.",
+        "accounts": [
+          {
+            "platform": "truthsocial",
+            "handle": "WhiteHouse",
+            "id": "113686491998750334",
+            "name": "The White House"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "SecRubio",
+            "id": "114399447870311163",
+            "name": "Marco Rubio"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "PeteHegseth",
+            "id": "107889619433136341",
+            "name": "Pete Hegseth"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "AGPamBondi",
+            "id": "114376103100256575",
+            "name": "Pam Bondi"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "KristiNoem",
+            "id": "108523423537918921",
+            "name": "Kristi Noem"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "TulsiGabbard",
+            "id": "107834674875471949",
+            "name": "Tulsi Gabbard"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "LindaMcMahon",
+            "id": "107890756042613982",
+            "name": "Linda McMahon"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "LeeZeldin",
+            "id": "107860400261224642",
+            "name": "Lee Zeldin"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "DougCollins",
+            "id": "107839068149183849",
+            "name": "Doug Collins"
+          },
+          {
+            "platform": "truthsocial",
+            "handle": "howardlutnick",
+            "id": "112909670691943534",
+            "name": "Howard Lutnick"
+          },
+          {
+            "platform": "x",
+            "handle": "JDVance",
+            "name": "JD Vance"
+          },
+          {
+            "platform": "x",
+            "handle": "VP",
+            "name": "Vice President (office)"
+          },
+          {
+            "platform": "x",
+            "handle": "SecKennedy",
+            "name": "Robert F. Kennedy Jr."
+          },
+          {
+            "platform": "x",
+            "handle": "SecScottBessent",
+            "name": "Scott Bessent"
+          },
+          {
+            "platform": "x",
+            "handle": "SecretaryBurgum",
+            "name": "Doug Burgum"
+          },
+          {
+            "platform": "x",
+            "handle": "FBIDirectorKash",
+            "name": "Kash Patel"
+          },
+          {
+            "platform": "x",
+            "handle": "SecRollins",
+            "name": "Brooke Rollins"
+          },
+          {
+            "platform": "x",
+            "handle": "SecDuffy",
+            "name": "Sean Duffy"
+          },
+          {
+            "platform": "x",
+            "handle": "PressSec",
+            "name": "Karoline Leavitt"
+          },
+          {
+            "platform": "x",
+            "handle": "StephenM",
+            "name": "Stephen Miller"
+          },
+          {
+            "platform": "x",
+            "handle": "russvought",
+            "name": "Russell Vought"
+          },
+          {
+            "platform": "x",
+            "handle": "SecretaryWright",
+            "name": "Chris Wright"
+          },
+          {
+            "platform": "x",
+            "handle": "SecretaryTurner",
+            "name": "Scott Turner"
+          },
+          {
+            "platform": "x",
+            "handle": "SecretaryLCD",
+            "name": "Lori Chavez-DeRemer"
+          },
+          {
+            "platform": "x",
+            "handle": "jamiesongreer",
+            "name": "Jamieson Greer"
+          }
+        ]
       }
     },
     "_excluded": "Checked 2026-10-25: ap-news.bsky.social is a parody account; natecohn, redistrict, natesilver, jessicataylor and amyewalter on Bluesky have 1-7 posts; jonralston4sos is a different person."

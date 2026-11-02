@@ -146,9 +146,22 @@ export function newsAt(ms) {
   return { items, errors: [], fetchedAt: new Date(ms).toISOString(), ranAt: new Date(ms).toISOString(), replay: true };
 }
 export function postsAt(list, ms) {
-  const p = tl.bundle?.posts?.[list];
-  if (!p?.length) return undefined;
+  const all = tl.bundle?.posts || {};
   const s = ms / 1000;
+  if (list === 'all') { // the everyone feed: every recorded list, a post once, tagged with its lists
+    const byId = new Map();
+    for (const [id, rows] of Object.entries(all)) for (const x of rows) {
+      if (x.t > s) continue;
+      const cur = byId.get(x.post.id);
+      if (cur) { if (!cur.lists.includes(id)) cur.lists.push(id); continue; }
+      byId.set(x.post.id, { ...x.post, acct: x.post.acct || x.post.repostBy?.handle || x.post.author?.handle || '', lists: [id] });
+    }
+    if (!byId.size) return undefined;
+    const posts = [...byId.values()].sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0)).slice(0, 400);
+    return { id: 'all', name: 'Everyone', posts, errors: [], ranAt: new Date(ms).toISOString(), replay: true };
+  }
+  const p = all[list];
+  if (!p?.length) return undefined;
   const posts = p.filter((x) => x.t <= s).map((x) => x.post).sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0)).slice(0, 80);
   return { id: list, name: app.config.social[list]?.name, posts, errors: [], ranAt: new Date(ms).toISOString(), replay: true };
 }

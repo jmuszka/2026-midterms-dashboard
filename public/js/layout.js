@@ -162,15 +162,44 @@ function settingsPopover(id, anchor) {
   const i = inst[id], T = TYPES[i.type];
   const fields = (T.settings || []).map((s) => {
     const opts = typeof s.options === 'function' ? s.options() : s.options;
+    if (s.type === 'multi') {
+      // checkboxes; null in settings = everything ticked. Options may carry a group id (third item).
+      const cur = i.settings[s.key];
+      const box = ([v, l]) => `<label class="chk"><input type="checkbox" data-multi="${s.key}" value="${esc(v)}" ${cur == null || cur.includes(v) ? 'checked' : ''}> ${esc(l)}</label>`;
+      const groups = typeof s.groupBy === 'function' ? s.groupBy() : null;
+      const body = groups
+        ? groups.map(([g, gl]) => { const o = opts.filter((x) => x[2] === g); return o.length ? `<details class="chk-group"><summary>${esc(gl)} <small>${o.filter(([v]) => cur == null || cur.includes(v)).length}/${o.length}</small> <a data-bulk="${s.key}" data-group="${esc(g)}" data-on="1">all</a> <a data-bulk="${s.key}" data-group="${esc(g)}" data-on="0">none</a></summary>${o.map(box).join('')}</details>` : ''; }).join('')
+        : opts.map(box).join('');
+      return `<div class="multi" data-multi-key="${s.key}"><div class="multi-head">${esc(s.label)} <span><a data-bulk="${s.key}" data-on="1">all</a> <a data-bulk="${s.key}" data-on="0">none</a></span></div><div class="multi-body">${body}</div></div>`;
+    }
     return `<label>${esc(s.label)}<select data-key="${s.key}">${opts.map(([v, l]) => `<option value="${esc(JSON.stringify(v))}" ${JSON.stringify(v) === JSON.stringify(i.settings[s.key]) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>`;
   }).join('');
+  pop.classList.toggle('wide', (T.settings || []).some((s) => s.type === 'multi'));
   pop.innerHTML = `<div class="pop-title">${esc(titleOf(id))}</div>${fields || '<p class="muted">No settings for this window.</p>'}
     <div class="pop-actions"><button type="button" data-act="dup">Duplicate</button><button type="button" data-act="float">Float / tile</button><button type="button" data-act="close">Close</button></div>`;
+  // a multi section saves null when every box is ticked, else the ticked values (deduplicated:
+  // a person listed under several groups is one value with several boxes)
+  const applyMulti = (key) => {
+    const boxes = [...pop.querySelectorAll(`input[data-multi="${key}"]`)];
+    const all = [...new Set(boxes.map((b) => b.value))];
+    const onSet = new Set(boxes.filter((b) => b.checked).map((b) => b.value));
+    i.settings[key] = onSet.size === all.length ? null : all.filter((v) => onSet.has(v));
+    persist();
+    const L = live[id];
+    if (L.view?.settingsChanged) L.view.settingsChanged(); else { destroy(id); mount(id); wm.render(); }
+    L.el.querySelector('h2').textContent = L.title || T.title(i.settings);
+    for (const d of pop.querySelectorAll(`.multi[data-multi-key="${key}"] details`)) { const o = [...d.querySelectorAll('input')]; d.querySelector('summary small').textContent = `${o.filter((b) => b.checked).length}/${o.length}`; }
+  };
   const r = anchor.getBoundingClientRect();
   pop.hidden = false;
-  pop.style.top = `${r.bottom + 6}px`;
+  pop.style.top = `${Math.max(8, Math.min(innerHeight - pop.offsetHeight - 8, r.bottom + 6))}px`; // a tall popover (checkbox lists) stays inside the viewport
   pop.style.left = `${Math.max(8, Math.min(innerWidth - pop.offsetWidth - 8, r.right - pop.offsetWidth))}px`;
   pop.onchange = (e) => {
+    if (e.target.dataset.multi) { // keep every box of the same value in step, then save
+      const v = e.target.value, key = e.target.dataset.multi;
+      for (const b of pop.querySelectorAll(`input[data-multi="${key}"]`)) if (b.value === v) b.checked = e.target.checked;
+      return applyMulti(key);
+    }
     const k = e.target.dataset.key; if (!k) return;
     i.settings[k] = JSON.parse(e.target.value);
     persist();
@@ -180,6 +209,15 @@ function settingsPopover(id, anchor) {
     if (!L.title) L.el.querySelector('h2').textContent = T.title(i.settings);
   };
   pop.onclick = (e) => {
+    const bulk = e.target.closest('a[data-bulk]');
+    if (bulk) {
+      e.preventDefault();
+      const key = bulk.dataset.bulk, onv = bulk.dataset.on === '1', g = bulk.dataset.group;
+      const scope = g ? bulk.closest('details') : pop.querySelector(`.multi[data-multi-key="${key}"]`);
+      const vals = new Set([...scope.querySelectorAll(`input[data-multi="${key}"]`)].map((b) => b.value));
+      for (const b of pop.querySelectorAll(`input[data-multi="${key}"]`)) if (vals.has(b.value)) b.checked = onv;
+      return applyMulti(key);
+    }
     const act = e.target.closest('[data-act]')?.dataset.act; if (!act) return;
     pop.hidden = true;
     if (act === 'dup') create(i.type, JSON.parse(JSON.stringify(i.settings)));
@@ -195,6 +233,7 @@ export function launcherItems(q, loc, presets) {
   return [
     ...Object.keys(inst).filter((id) => m(titleOf(id))).map((id) => ({ group: 'Open windows', label: esc(titleOf(id)), sub: loc(id), action: ['focus', id] })),
     ...Object.values(TYPES).filter((t) => m(`new ${t.name}`)).map((t) => ({ group: 'New window', label: esc(t.name), sub: 'opens on this workspace', action: ['new', t.type] })),
+    ...Object.values(TYPES).flatMap((t) => (t.launch ? t.launch() : []).filter((f) => m(`feed ${f.label} ${f.sub}`)).map((f) => ({ group: 'New feed (a social media feed, preset)', label: esc(f.label), sub: esc(f.sub), action: ['new', t.type, f.settings] }))),
     ...Object.entries(presets).filter(([, p]) => m(`preset ${p.name} ${p.description}`)).map(([k, p]) => ({ group: 'Presets (replace the layout)', label: esc(p.name), sub: esc(p.description), action: ['preset', k] })),
   ];
 }
