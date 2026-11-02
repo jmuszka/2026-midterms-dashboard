@@ -63,7 +63,7 @@ Every 15 seconds the scraper calls `runPoll({ beat: true })` (`lib/poll.mjs`). E
 | Task | Interval | Source (see `docs/RESEARCH.md`) | Writes |
 |---|---|---|---|
 | `results` | 60 s | CNN (AP calls) + NC, VA, GA, CO, IA official feeds, merged | `kv` snapshot, `events` (calls, flips, lead changes, vote batches, tight margins), `race_ticks` (only races that changed), a `snapshots` keyframe every 5 min |
-| `counties` | 60 s | CNN per-race county files, only for races whose count moved since their last fetch; statewide first, then competitive House seats, at most 20 files a run (`countyBatch`) | `kv` snapshot, `snapshots` row `counties:<race id>` (compact table) when it changed |
+| `counties` | 60 s | CNN per-race county files, only for races whose count moved since their last fetch; statewide first, then competitive House seats, at most 30 files a run (`countyBatch`), longest-waiting first weighted statewide ×4, competitive House ×2 | `kv` snapshot, `snapshots` row `counties:<race id>` (compact table) when it changed |
 | `markets` | 60 s | Kalshi, Polymarket, PredictIt, all 506 races; Polymarket world questions (`markets.topics`) | `kv` snapshot, `events` (moves of 5+ points), `ticks` (only prices that moved, plus a 15-minute keep-alive; world questions as `topic:<market id>`) |
 | `streams` | 120 s | YouTube live detection for 34 channels, Twitch, Kick | `kv` snapshot, `stream_ticks` (which video each channel showed, on change), `stream_videos` (each video's broadcast start, end and archived length) |
 | `news` | 120 s | 21 RSS feeds and Google News queries | `kv` snapshot, `news_items` (new headlines) |
@@ -104,7 +104,7 @@ What the scraper sends upstream on its default 15 s tick, with every task succee
 | Host | Task | Interval | Requests per run | Per hour | Known limit |
 |---|---|---|---|---|---|
 | politics.api.cnn.io | results | 60 s | 4 (SG, S2G, HG, GG) | 240 | none published; grey area, kept slow |
-| politics.api.cnn.io | counties | 60 s | 0–20 county files, only for races whose count moved | ≤1,200 on the night, 0 before | as above |
+| politics.api.cnn.io | counties | 60 s | 0–30 county files, only for races whose count moved | ≤1,800 on the night | as above |
 | NC, VA, GA state feeds | results | 60 s | 1 each | 60 each | none |
 | Clarity (CO, IA) | results | 60 s | 2 per state once listed | ~240 | none |
 | Kalshi | markets | 60 s | 3 (tickers in 100s) | 180 | ~20 req/s |
