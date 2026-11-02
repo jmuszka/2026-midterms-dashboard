@@ -1,6 +1,6 @@
 {
   "_comment": "Permanent site-wide notice shown under the bar (public/js/boot.js). Set enabled=false to hide it. The SITE_NOTICE env var overrides text (SITE_NOTICE=off hides it) without a deploy. action 'timeline' focuses the timeline scrubber; href opens a link instead. Dismissals are per message text.",
-  "enabled": true,
+  "enabled": false,
   "text": "The 2026 midterms are over. This dashboard now works as a record of election night: drag the timeline to replay any moment of the count, the markets, the news and the streams as they were.",
   "action": "timeline",
   "actionLabel": "Open the timeline"
