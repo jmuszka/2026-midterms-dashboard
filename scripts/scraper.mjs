@@ -7,6 +7,7 @@
 //   node scripts/scraper.mjs --standby       # write only while no other scraper's heartbeat is fresh
 //   node scripts/scraper.mjs --once          # one cycle, then exit (smoke test)
 //   node scripts/scraper.mjs --tick 15       # seconds between cycles (default 15)
+//   node scripts/scraper.mjs --tasks results,counties   # only these tasks (rehearsals)
 //   node scripts/scraper.mjs --archive DIR   # local raw archive (default ./archive; --no-archive turns it off)
 //
 // Needs SUPABASE_URL and SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY).
@@ -40,6 +41,12 @@ const { diskArchive } = await import('../lib/archive.mjs');
 const { getStore } = await import('../lib/store.mjs');
 
 const TICK = (+opt('--tick', 15) || 15) * 1000;
+const ONLY = opt('--tasks', '') ? opt('--tasks').split(',') : undefined;
+// a rehearsal (CNN_BASE set: replayed past results) must never write to the production database
+if (process.env.CNN_BASE) {
+  const prod = fs.existsSync(path.join(ROOT, '.env')) && fs.readFileSync(path.join(ROOT, '.env'), 'utf8').match(/^SUPABASE_URL="?([^"\n]+)/m)?.[1];
+  if (!prod || prod === process.env.SUPABASE_URL) { console.error('scraper: CNN_BASE is set (a rehearsal) but SUPABASE_URL is the production project in .env (or .env is missing). Refusing.'); process.exit(1); }
+}
 const STANDBY = flag('--standby');
 const HOST = os.hostname();
 const STALE_FOR_STANDBY = 180; // seconds without another scraper's heartbeat before standby takes over
@@ -91,7 +98,7 @@ async function cycle() {
       if (s?.host && s.host !== HOST && s.age != null && s.age < STALE_FOR_STANDBY) { if (cycles++ % 20 === 0) log(`standby: ${s.host} is live (${s.age}s ago)`); return; }
     }
     const t0 = Date.now();
-    const out = await runPoll({ beat: true });
+    const out = await runPoll({ beat: true, only: ONLY });
     cycles++;
     const ran = Object.entries(out.tasks).filter(([, v]) => !v.skipped);
     const failed = ran.filter(([, v]) => !v.ok);
