@@ -643,6 +643,541 @@
             "fallbackRss": "https://trumpstruth.org/feed"
           }
         ]
+      },
+      "senators": {
+        "name": "Senators",
+        "_note": "Curated 2026-11-02. Bluesky handles verified live (official .senate.gov handles where they exist); X handles are from memory and unverified until X_BEARER_TOKEN is set.",
+        "accounts": [
+          {
+            "platform": "bluesky",
+            "handle": "sanders.senate.gov",
+            "name": "Bernie Sanders"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "warren.senate.gov",
+            "name": "Elizabeth Warren"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "chrismurphyct.bsky.social",
+            "name": "Chris Murphy"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "booker.senate.gov",
+            "name": "Cory Booker"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "schumer.senate.gov",
+            "name": "Chuck Schumer"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "fetterman.senate.gov",
+            "name": "John Fetterman"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "gallego.senate.gov",
+            "name": "Ruben Gallego"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "warnock.senate.gov",
+            "name": "Raphael Warnock"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "ossoff.bsky.social",
+            "name": "Jon Ossoff"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "captmarkkelly.bsky.social",
+            "name": "Mark Kelly"
+          },
+          {
+            "platform": "x",
+            "handle": "tedcruz",
+            "name": "Ted Cruz"
+          },
+          {
+            "platform": "x",
+            "handle": "RandPaul",
+            "name": "Rand Paul"
+          },
+          {
+            "platform": "x",
+            "handle": "HawleyMO",
+            "name": "Josh Hawley"
+          },
+          {
+            "platform": "x",
+            "handle": "LindseyGrahamSC",
+            "name": "Lindsey Graham"
+          },
+          {
+            "platform": "x",
+            "handle": "SenJohnThune",
+            "name": "John Thune"
+          },
+          {
+            "platform": "x",
+            "handle": "BasedMikeLee",
+            "name": "Mike Lee"
+          },
+          {
+            "platform": "x",
+            "handle": "TomCottonAR",
+            "name": "Tom Cotton"
+          },
+          {
+            "platform": "x",
+            "handle": "MarshaBlackburn",
+            "name": "Marsha Blackburn"
+          },
+          {
+            "platform": "x",
+            "handle": "SenRickScott",
+            "name": "Rick Scott"
+          },
+          {
+            "platform": "x",
+            "handle": "JohnCornyn",
+            "name": "John Cornyn"
+          }
+        ]
+      },
+      "representatives": {
+        "name": "Representatives",
+        "_note": "Curated 2026-11-02. Bluesky verified live; X unverified until a token is set.",
+        "accounts": [
+          {
+            "platform": "bluesky",
+            "handle": "ocasio-cortez.house.gov",
+            "name": "Alexandria Ocasio-Cortez"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "crockett.house.gov",
+            "name": "Jasmine Crockett"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "hakeem-jeffries.bsky.social",
+            "name": "Hakeem Jeffries"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "pelosi.house.gov",
+            "name": "Nancy Pelosi"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "rokhanna.bsky.social",
+            "name": "Ro Khanna"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "raskin.house.gov",
+            "name": "Jamie Raskin"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "ilhanmn.bsky.social",
+            "name": "Ilhan Omar"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "jayapal.house.gov",
+            "name": "Pramila Jayapal"
+          },
+          {
+            "platform": "x",
+            "handle": "SpeakerJohnson",
+            "name": "Mike Johnson"
+          },
+          {
+            "platform": "x",
+            "handle": "Jim_Jordan",
+            "name": "Jim Jordan"
+          },
+          {
+            "platform": "x",
+            "handle": "RepThomasMassie",
+            "name": "Thomas Massie"
+          },
+          {
+            "platform": "x",
+            "handle": "laurenboebert",
+            "name": "Lauren Boebert"
+          },
+          {
+            "platform": "x",
+            "handle": "chiproytx",
+            "name": "Chip Roy"
+          },
+          {
+            "platform": "x",
+            "handle": "EliseStefanik",
+            "name": "Elise Stefanik"
+          },
+          {
+            "platform": "x",
+            "handle": "ByronDonalds",
+            "name": "Byron Donalds"
+          },
+          {
+            "platform": "x",
+            "handle": "realannapaulina",
+            "name": "Anna Paulina Luna"
+          },
+          {
+            "platform": "x",
+            "handle": "NancyMace",
+            "name": "Nancy Mace"
+          },
+          {
+            "platform": "x",
+            "handle": "RepMTG",
+            "name": "Marjorie Taylor Greene"
+          }
+        ]
+      },
+      "governors": {
+        "name": "Governors",
+        "_note": "Curated 2026-11-02. Bluesky official office handles verified live; X unverified until a token is set.",
+        "accounts": [
+          {
+            "platform": "bluesky",
+            "handle": "governor.ca.gov",
+            "name": "Gavin Newsom"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "govpritzker.illinois.gov",
+            "name": "JB Pritzker"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "governor.pa.gov",
+            "name": "Josh Shapiro"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "governorwalz.mn.gov",
+            "name": "Tim Walz"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "govandybeshear.bsky.social",
+            "name": "Andy Beshear"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "govwesmoore.bsky.social",
+            "name": "Wes Moore"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "governor.ny.gov",
+            "name": "Kathy Hochul"
+          },
+          {
+            "platform": "x",
+            "handle": "GovWhitmer",
+            "name": "Gretchen Whitmer"
+          },
+          {
+            "platform": "x",
+            "handle": "GovRonDeSantis",
+            "name": "Ron DeSantis"
+          },
+          {
+            "platform": "x",
+            "handle": "GregAbbott_TX",
+            "name": "Greg Abbott"
+          },
+          {
+            "platform": "x",
+            "handle": "SarahHuckabee",
+            "name": "Sarah Huckabee Sanders"
+          },
+          {
+            "platform": "x",
+            "handle": "BrianKempGA",
+            "name": "Brian Kemp"
+          },
+          {
+            "platform": "x",
+            "handle": "GovMikeDeWine",
+            "name": "Mike DeWine"
+          },
+          {
+            "platform": "x",
+            "handle": "SpencerJCox",
+            "name": "Spencer Cox"
+          }
+        ]
+      },
+      "former": {
+        "name": "Former officials",
+        "_note": "Curated 2026-11-02. Bluesky verified live; X unverified until a token is set.",
+        "accounts": [
+          {
+            "platform": "bluesky",
+            "handle": "kamalaharris.com",
+            "name": "Kamala Harris"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "barackobama.bsky.social",
+            "name": "Barack Obama"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "hillaryclinton.bsky.social",
+            "name": "Hillary Clinton"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "petebuttigieg.bsky.social",
+            "name": "Pete Buttigieg"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "betoorourke.bsky.social",
+            "name": "Beto O'Rourke"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "staceyabrams.com",
+            "name": "Stacey Abrams"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "lizcheney.bsky.social",
+            "name": "Liz Cheney"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "adamkinzinger.substack.com",
+            "name": "Adam Kinzinger"
+          },
+          {
+            "platform": "x",
+            "handle": "JoeBiden",
+            "name": "Joe Biden"
+          },
+          {
+            "platform": "x",
+            "handle": "Mike_Pence",
+            "name": "Mike Pence"
+          },
+          {
+            "platform": "x",
+            "handle": "NikkiHaley",
+            "name": "Nikki Haley"
+          },
+          {
+            "platform": "x",
+            "handle": "GovChristie",
+            "name": "Chris Christie"
+          },
+          {
+            "platform": "x",
+            "handle": "MittRomney",
+            "name": "Mitt Romney"
+          },
+          {
+            "platform": "x",
+            "handle": "GlennYoungkin",
+            "name": "Glenn Youngkin"
+          },
+          {
+            "platform": "x",
+            "handle": "mtgreenee",
+            "name": "Marjorie Taylor Greene (personal)"
+          },
+          {
+            "platform": "x",
+            "handle": "RonDeSantis",
+            "name": "Ron DeSantis (personal)"
+          }
+        ]
+      },
+      "pundits": {
+        "name": "Pundits and commentators",
+        "_note": "Curated 2026-11-02, both sides. Bluesky verified live (mostly left-of-centre voices; the right is not on Bluesky); X unverified until a token is set.",
+        "accounts": [
+          {
+            "platform": "bluesky",
+            "handle": "mehdirhasan.bsky.social",
+            "name": "Mehdi Hasan"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "briantylercohen.bsky.social",
+            "name": "Brian Tyler Cohen"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "davidpakman.bsky.social",
+            "name": "David Pakman"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "chrislhayes.bsky.social",
+            "name": "Chris Hayes"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "maddow.bsky.social",
+            "name": "Rachel Maddow"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "atrupar.com",
+            "name": "Aaron Rupar"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "jimacosta.bsky.social",
+            "name": "Jim Acosta"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "joyannreid.bsky.social",
+            "name": "Joy Reid"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "mollyjongfast.bsky.social",
+            "name": "Molly Jong-Fast"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "olbermann.bsky.social",
+            "name": "Keith Olbermann"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "marcelias.bsky.social",
+            "name": "Marc Elias"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "gtconway.bsky.social",
+            "name": "George Conway"
+          },
+          {
+            "platform": "bluesky",
+            "handle": "podsaveamerica.crooked.com",
+            "name": "Pod Save America"
+          },
+          {
+            "platform": "x",
+            "handle": "benshapiro",
+            "name": "Ben Shapiro"
+          },
+          {
+            "platform": "x",
+            "handle": "TuckerCarlson",
+            "name": "Tucker Carlson"
+          },
+          {
+            "platform": "x",
+            "handle": "MattWalshBlog",
+            "name": "Matt Walsh"
+          },
+          {
+            "platform": "x",
+            "handle": "RealCandaceO",
+            "name": "Candace Owens"
+          },
+          {
+            "platform": "x",
+            "handle": "megynkelly",
+            "name": "Megyn Kelly"
+          },
+          {
+            "platform": "x",
+            "handle": "ScottJenningsKY",
+            "name": "Scott Jennings"
+          },
+          {
+            "platform": "x",
+            "handle": "hasanthehun",
+            "name": "Hasan Piker"
+          },
+          {
+            "platform": "x",
+            "handle": "seanhannity",
+            "name": "Sean Hannity"
+          },
+          {
+            "platform": "x",
+            "handle": "IngrahamAngle",
+            "name": "Laura Ingraham"
+          },
+          {
+            "platform": "x",
+            "handle": "JesseBWatters",
+            "name": "Jesse Watters"
+          },
+          {
+            "platform": "x",
+            "handle": "marklevinshow",
+            "name": "Mark Levin"
+          },
+          {
+            "platform": "x",
+            "handle": "glennbeck",
+            "name": "Glenn Beck"
+          },
+          {
+            "platform": "x",
+            "handle": "JackPosobiec",
+            "name": "Jack Posobiec"
+          },
+          {
+            "platform": "x",
+            "handle": "Timcast",
+            "name": "Tim Pool"
+          },
+          {
+            "platform": "x",
+            "handle": "michaeljknowles",
+            "name": "Michael Knowles"
+          },
+          {
+            "platform": "x",
+            "handle": "joerogan",
+            "name": "Joe Rogan"
+          },
+          {
+            "platform": "x",
+            "handle": "billmaher",
+            "name": "Bill Maher"
+          },
+          {
+            "platform": "x",
+            "handle": "krystalball",
+            "name": "Krystal Ball"
+          },
+          {
+            "platform": "x",
+            "handle": "cenkuygur",
+            "name": "Cenk Uygur"
+          },
+          {
+            "platform": "x",
+            "handle": "VanJones68",
+            "name": "Van Jones"
+          }
+        ]
       }
     },
     "_excluded": "Checked 2026-10-25: ap-news.bsky.social is a parody account; natecohn, redistrict, natesilver, jessicataylor and amyewalter on Bluesky have 1-7 posts; jonralston4sos is a different person."
