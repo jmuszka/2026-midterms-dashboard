@@ -298,3 +298,26 @@ test('timeline: safe-race market series thinned to point moves, hourly points an
   assert.deepEqual(thinSeries(m), { t: [0, 180, 3760], v: [0.05, 0.065, 0.067] });
   assert.deepEqual(thinSeries({ t: [0, 4000, 4060], v: [0.1, 0.1, 0.1] }), { t: [0, 4000, 4060], v: [0.1, 0.1, 0.1] });
 });
+
+test('timeline segments: hour pieces plus the live tail hold exactly the rows of the whole range', async () => {
+  const { bundleFromStore } = await import('../lib/timeline.mjs');
+  const { _memoryStore } = await import('../lib/store.mjs');
+  const st = _memoryStore();
+  const row = (t, v) => ({ race_id: 'S-GA', t, called: false, winner: null, runoff: false, expected: null, prec: null, prec_total: null, votes: [['A', 'DEM', v], ['B', 'GOP', v]] });
+  await st.addRaceTicks([row('2026-11-03T20:30:00.000Z', 1), row('2026-11-03T21:00:00.000Z', 2), row('2026-11-03T21:59:59.000Z', 3), row('2026-11-03T22:10:00.000Z', 4)]);
+  await st.addTicks([{ key: 'control:S', t: '2026-11-03T20:05:00.000Z', v: 0.5 }, { key: 'control:S', t: '2026-11-03T22:01:00.000Z', v: 0.6 }, { key: 'stock:SPX', t: '2026-11-03T15:00:00.000Z', v: 9 }]);
+  await st.addNewsItems([{ link: 'a', first_seen: '2026-11-03T21:30:00.000Z', title: 'x', lanes: [] }]);
+  await st.addSnapshot('trends', '2026-11-03T12:00:00.000Z', [{ term: 'before' }]);
+  const now = Date.parse('2026-11-03T22:20:00Z');
+  const whole = await bundleFromStore(st, { now });
+  const s1 = await bundleFromStore(st, { since: '2026-11-03T20:00:00.000Z', until: '2026-11-03T21:00:00.000Z', head: true });
+  const s2 = await bundleFromStore(st, { since: '2026-11-03T21:00:00.000Z', until: '2026-11-03T22:00:00.000Z' });
+  const tail = await bundleFromStore(st, { since: '2026-11-03T22:00:00.000Z', now });
+  const votes = (...bs) => bs.flatMap((b) => b.races['S-GA']?.v.map((r) => r[0]) || []);
+  assert.deepEqual(votes(s1, s2, tail), votes(whole));
+  assert.deepEqual([s1, s2, tail].flatMap((b) => b.markets['control:S']?.v || []), whole.markets['control:S'].v);
+  assert.deepEqual(s1.stocks.SPX.v, [9]); assert.equal(s2.stocks.SPX, undefined); // a day of stock prices only with head
+  assert.deepEqual(s1.trends.map(([, i]) => i[0].term), ['before']); assert.deepEqual(s2.trends, []);
+  assert.equal(s2.news.length, 1);
+  assert.equal(s1.from, '2026-11-03T20:00:00.000Z'); assert.equal(s1.to, '2026-11-03T21:00:00.000Z');
+});

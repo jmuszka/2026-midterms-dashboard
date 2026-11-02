@@ -1,7 +1,8 @@
 /* Timeline model: holds the bundle from /api/timeline and rebuilds the dashboard's data at any
  * moment. stateAt(t) returns the same shape as /api/results, so the views cannot tell a replay
- * from live data. Loaded once, then appended with ?since= (every 30 s, or when a scraper
- * heartbeat arrives). */
+ * from live data. Loaded in hour pieces (settled ones are cached by the CDN for everyone), then
+ * appended with ?since= (every 30 s, or when a scraper heartbeat arrives); loadEarlier() adds
+ * older history a day at a time. A simulated night is one download. */
 import { app, getJSON } from './core.js';
 
 const tl = {
@@ -15,6 +16,20 @@ export default tl;
 
 const simQ = () => (app.sim ? `sim=1${app.simAt ? `&simAt=${app.simAt}` : ''}` : '');
 const url = (since, v) => `/api/timeline?${[simQ(), since ? `since=${encodeURIComponent(since)}` : '', v ? `v=${v}` : ''].filter(Boolean).join('&')}`;
+const segUrl = (a, z, head) => `/api/timeline?since=${new Date(a).toISOString()}&until=${new Date(z).toISOString()}${head ? '&head=1' : ''}`;
+const HOUR = 3600e3, NIGHT_FROM = Date.parse('2026-11-03T20:00:00.000Z'); // lib/timeline.mjs bundleFloor
+const floorAt = (now) => (now >= NIGHT_FROM ? NIGHT_FROM : Math.floor((now - 24 * HOUR) / HOUR) * HOUR);
+// settled hour pieces from a to z (whole hours), the first carrying the state in force at a
+async function segments(a, z, step) {
+  const parts = [];
+  for (let x = a; x < z; x += step) parts.push([x, Math.min(z, x + step)]);
+  const out = new Array(parts.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(6, parts.length) }, async () => {
+    while (next < parts.length) { const i = next++; out[i] = await getJSON(segUrl(parts[i][0], parts[i][1], i === 0)); }
+  }));
+  return out;
+}
 
 /* ---------------- loading and merging ---------------- */
 function mergeRaces(into, add) {
@@ -35,8 +50,7 @@ function mergeRaces(into, add) {
     });
   }
 }
-function merge(add) {
-  const b = tl.bundle;
+function merge(b, add) {
   mergeRaces(b.races, add.races);
   for (const sec of ['markets', 'stocks', 'stockPrev']) {
     for (const [k, m] of Object.entries(add[sec] || {})) {
@@ -59,16 +73,45 @@ function merge(add) {
   if (add.topics?.length) b.topics = add.topics; // names only, always sent in full
   if (add.to && (!b.to || add.to > b.to)) b.to = add.to;
   if (add.from && (!b.from || add.from < b.from)) b.from = add.from;
+  if (add.start) b.start = add.start;
+}
+// first load: whole hours since the floor that are settled (3 min past), then the live tail
+async function loadInitial(v) {
+  const now = Date.now(), floor = floorAt(now), last = Math.floor((now - 180e3) / HOUR) * HOUR;
+  if (app.sim || last <= floor) return getJSON(url(null, v));
+  const [b, ...rest] = await segments(floor, last, HOUR);
+  for (const s of rest) merge(b, s);
+  const tail = await getJSON(url(new Date(last).toISOString(), v));
+  merge(b, tail);
+  b.from = new Date(Math.max(floor, b.start ? Date.parse(b.start) : 0)).toISOString(); // not before the first recording
+  return b;
 }
 let loading = null;
 export function refresh(v) {
   if (loading) return loading;
   loading = (async () => {
     try {
-      if (!tl.bundle) { tl.bundle = await getJSON(url(null, v)); }
-      else merge(await getJSON(url(tl.bundle.to, v)));
+      if (!tl.bundle) { tl.bundle = await loadInitial(v); }
+      else merge(tl.bundle, await getJSON(url(tl.bundle.to, v)));
       tl.loaded = true; tl.error = null;
       memo.clear();
+    } catch (e) { tl.error = e.message; }
+    finally { loading = null; }
+    for (const fn of tl.subs) fn(tl);
+  })();
+  return loading;
+}
+// older history, a day at a time (6-hour pieces), down to the first recording
+export const canLoadEarlier = () => !!tl.bundle && !tl.simulated && !!tl.bundle.start && tl.from > Date.parse(tl.bundle.start) + 60e3;
+export function loadEarlier(hours = 24) {
+  if (!canLoadEarlier() || loading) return loading;
+  loading = (async () => {
+    try {
+      const z = tl.from, a = Math.max(Math.floor(Date.parse(tl.bundle.start) / HOUR) * HOUR, z - hours * HOUR);
+      const [b, ...rest] = await segments(a, z, 6 * HOUR);
+      for (const s of rest) merge(b, s);
+      merge(b, tl.bundle); b.from = new Date(a).toISOString();
+      tl.bundle = b; memo.clear(); tl.error = null;
     } catch (e) { tl.error = e.message; }
     finally { loading = null; }
     for (const fn of tl.subs) fn(tl);

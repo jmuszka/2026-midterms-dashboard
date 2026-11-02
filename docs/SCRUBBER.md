@@ -174,6 +174,14 @@ On Nov 1 the full bundle was 2 MB of JSON (441 KB compressed). It took 7 s to bu
 - **Thinner market ticks in the bundle.** Every market move is stored (since 2026-11-02, for the archive). The bundle sends races rated safe or likely (|score| ≥ 2) only on a move of a point or more, hourly, and the latest value (`thinSeries` in `lib/timeline.mjs`). Competitive races, control and world questions go in full with the 15-minute keepalive.
 - **Compression in the function.** `api/[route].mjs` sends bodies over 32 KB with brotli or gzip itself (`vary: accept-encoding`), so the 4.5 MB limit applies to the compressed size. That is about 4.5 times as much JSON.
 
+### Hour pieces and earlier history (2026-11-02)
+
+By Nov 2 the 24-hour bundle was 3.5 MB of JSON and took 13 s to build (nine social lists, every stock and market move), and the night would add vote rows for every race. So browsers no longer download it in one piece:
+- **Segments.** `/api/timeline?since=<hour>&until=<hour>` returns the rows in (since, until], whole hours, at most 24 apart; `&head=1` adds the state in force at the start (the trends list, a day of stock prices). A segment whose end is 3 minutes past is settled and cached by the CDN for a day, so each hour is built once for every viewer.
+- **First load** (`public/js/timeline.js` `loadInitial`): the settled hours from `bundleFloor` in parallel (6 at a time), merged in order, then the live tail with `?since=`, which keeps updating as before. Each hour piece keeps the latest safe-race price of its own, so the merged bundle holds a few percent more market points than one download. Simulation mode still loads one bundle.
+- **Earlier** (button left of the strip, `loadEarlier`): 24 more hours in 6-hour segments, prepended, down to the first recording (`start` in the tail response, the first heartbeat). Nothing before the floor is lost: the store keeps every row since Oct 25.
+- Measured on Nov 2 (24 h, local server against Supabase): one bundle 13.2 s; 24 pieces plus the tail 2.9 s; largest piece 622 KB of JSON (the first, with the day of stock prices).
+
 ## 3. The clock (browser)
 
 `public/js/clock.js`, one object every view already indirectly depends on:

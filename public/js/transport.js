@@ -33,6 +33,7 @@ export function startTransport() {
     <button type="button" class="tl-live" title="Back to live (L)">Live</button>
     <button type="button" class="tl-play" title="Play / pause the replay" aria-label="Play">▶</button>
     <select class="tl-speed" aria-label="Replay speed" title="Replay speed">${[[1, '1×'], [10, '10×'], [60, '60×'], [300, '300×'], [1200, '1200×']].map(([v, l]) => `<option value="${v}" ${v === clock.speed ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    <button type="button" class="tl-earlier" title="Load the 24 hours before the start of the timeline" hidden>◂ Earlier</button>
     <div class="tl-track" role="slider" tabindex="0" aria-label="Timeline: scrub to any recorded moment">
       <svg class="tl-marks" preserveAspectRatio="none"></svg>
       <div class="tl-played"></div><div class="tl-thumb"></div><div class="tl-hover" hidden></div>
@@ -150,7 +151,10 @@ export function startTransport() {
     throttle = requestAnimationFrame(() => { throttle = 0; origSet(clock.t); });
   };
 
+  const earlier = el.querySelector('.tl-earlier');
+  earlier.addEventListener('click', async () => { earlier.disabled = true; earlier.textContent = 'Loading…'; await T.loadEarlier(); earlier.disabled = false; earlier.textContent = '◂ Earlier'; });
   tl.subscribe(() => {
+    earlier.hidden = !T.canLoadEarlier();
     drawMarks(); draw();
     if (clock.pending && tl.from) { const t = clock.pending; clock.pending = null; enterReplay(t); }
     if (clock.mode === 'replay') hub.replayTick(); // new rows may change the state at the current moment
