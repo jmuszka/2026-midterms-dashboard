@@ -109,12 +109,26 @@ const items = await ev(`[...document.querySelectorAll('#launcher-list li[data-i]
 await ev(`document.querySelector('#launcher-list li[data-i]').click()`); await sleep(900);
 check('launcher created stream-2', await ev(`!!document.querySelector('[data-win="stream-2"]')`), items);
 
+// light mode: the bar button flips data-theme, the choice survives a reload, and the favicon is served
+await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
+check('dark mode is the default', await ev(`!document.documentElement.dataset.theme && document.querySelector('#bar-theme').getAttribute('aria-pressed') === 'false'`));
+await ev(`document.querySelector('#bar-theme').click()`); await sleep(300);
+check('theme button switches to light mode', await ev(`document.documentElement.dataset.theme === 'light' && localStorage.getItem('us-dash-theme') === 'light' && getComputedStyle(document.body).backgroundColor === 'rgb(233, 236, 241)'`), await ev(`getComputedStyle(document.body).backgroundColor`));
+await shot('ws1-light.png');
+await ev(`wm.workspace(2)`); await sleep(1200); await shot('ws2-light.png');
+await ev(`wm.workspace(3)`); await sleep(1200); await shot('ws3-light.png');
+await ev(`wm.workspace(1)`); await sleep(1200);
+check('favicon.svg is served as SVG', await ev(`fetch('/favicon.svg').then(r => r.ok && /svg/.test(r.headers.get('content-type')) && r.text()).then(t => /<path fill="#3A7BE0"/.test(t) && /<path fill="#E0453A"/.test(t))`));
+
 // share link round trip
 const link = await ev(`(async () => { const m = await import('/js/layout.js'); return m.shareLink(); })()`);
 check('share link generated', typeof link === 'string' && /#l=z/.test(link), String(link).slice(0, 80) + '…');
 await send('Page.navigate', { url: link.replace(/\?[^#]*/, '?sim=1&simAt=' + simAt) });
 await waitFor(`document.querySelectorAll('.win').length > 10`); await sleep(2500);
 check('shared link restores the new stream window', await ev(`!!document.querySelector('[data-win="stream-2"]')`));
+check('light mode survives a reload', await ev(`document.documentElement.dataset.theme === 'light' && document.querySelector('#bar-theme').textContent === '☀'`));
+await ev(`document.querySelector('#bar-theme').click()`); await sleep(200);
+check('theme button switches back to dark', await ev(`!document.documentElement.dataset.theme && localStorage.getItem('us-dash-theme') === 'dark'`));
 check('shared link restores the ratings map setting', await ev(`JSON.parse(localStorage.getItem('us-dash-layout-v1')).inst['map-2'].settings.mode === 'rating'`));
 
 // phone width

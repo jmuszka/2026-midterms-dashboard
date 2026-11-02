@@ -4,24 +4,29 @@
 import { $, esc } from './core.js';
 
 const reader = { items: [], idx: -1, item: null, data: null, mode: 'reader', token: 0 };
+const isLight = () => document.documentElement.dataset.theme === 'light';
 function readerDoc(a, item) {
   const when = a.published ? new Date(a.published) : item.published ? new Date(item.published) : null;
+  const light = isLight();
+  const c = light
+    ? { bg: '#ffffff', fg: '#1d242d', head: '#0f141a', mute: '#5c6675', link: '#1f5fc4', quote: '#3f4852', line: '#d4d9e0', noteFg: '#6b4a00', noteBg: '#fff6dd', noteBd: '#e8d49a' }
+    : { bg: '#12161c', fg: '#dfe3e8', head: '#f3f5f7', mute: '#8b96a3', link: '#7fb0f5', quote: '#c4cad1', line: '#2a323d', noteFg: '#f0c674', noteBg: '#2a2416', noteBd: '#4a3f22' };
   const css = `
-    :root { color-scheme: dark; }
-    body { margin: 0; background: #12161c; color: #dfe3e8; font: 18px/1.65 Georgia, "Iowan Old Style", "Times New Roman", serif; }
+    :root { color-scheme: ${light ? 'light' : 'dark'}; }
+    body { margin: 0; background: ${c.bg}; color: ${c.fg}; font: 18px/1.65 Georgia, "Iowan Old Style", "Times New Roman", serif; }
     main { max-width: 700px; margin: 0 auto; padding: 32px 28px 80px; }
-    .kicker { font: 600 12px/1.4 system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #8b96a3; }
-    h1 { font: 700 32px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; margin: 8px 0 10px; color: #f3f5f7; }
-    .by { font: 14px/1.4 system-ui, sans-serif; color: #8b96a3; margin-bottom: 22px; }
+    .kicker { font: 600 12px/1.4 system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: ${c.mute}; }
+    h1 { font: 700 32px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; margin: 8px 0 10px; color: ${c.head}; }
+    .by { font: 14px/1.4 system-ui, sans-serif; color: ${c.mute}; margin-bottom: 22px; }
     .hero { width: 100%; border-radius: 8px; margin: 0 0 20px; }
     img, video, figure { max-width: 100%; height: auto; }
-    figure { margin: 22px 0; } figcaption { font: 13px/1.4 system-ui, sans-serif; color: #8b96a3; margin-top: 6px; }
-    a { color: #7fb0f5; } h2, h3, h4 { font-family: system-ui, sans-serif; color: #f3f5f7; line-height: 1.3; margin: 1.6em 0 .5em; }
-    blockquote { margin: 1.2em 0; padding: 2px 0 2px 16px; border-left: 3px solid #3A7BE0; color: #c4cad1; }
-    table { border-collapse: collapse; font: 14px system-ui, sans-serif; } td, th { border: 1px solid #2a323d; padding: 4px 8px; }
+    figure { margin: 22px 0; } figcaption { font: 13px/1.4 system-ui, sans-serif; color: ${c.mute}; margin-top: 6px; }
+    a { color: ${c.link}; } h2, h3, h4 { font-family: system-ui, sans-serif; color: ${c.head}; line-height: 1.3; margin: 1.6em 0 .5em; }
+    blockquote { margin: 1.2em 0; padding: 2px 0 2px 16px; border-left: 3px solid #3A7BE0; color: ${c.quote}; }
+    table { border-collapse: collapse; font: 14px system-ui, sans-serif; } td, th { border: 1px solid ${c.line}; padding: 4px 8px; }
     pre, code { font-size: 14px; white-space: pre-wrap; }
-    .note { font: 14px/1.5 system-ui, sans-serif; color: #f0c674; background: #2a2416; border: 1px solid #4a3f22; padding: 12px 14px; border-radius: 8px; }
-    .end { margin-top: 36px; font: 14px system-ui, sans-serif; color: #8b96a3; border-top: 1px solid #2a323d; padding-top: 14px; }`;
+    .note { font: 14px/1.5 system-ui, sans-serif; color: ${c.noteFg}; background: ${c.noteBg}; border: 1px solid ${c.noteBd}; padding: 12px 14px; border-radius: 8px; }
+    .end { margin-top: 36px; font: 14px system-ui, sans-serif; color: ${c.mute}; border-top: 1px solid ${c.line}; padding-top: 14px; }`;
   const heroInContent = a.image && a.content && a.content.includes(a.image.split('?')[0]);
   const body = a.ok
     ? `${a.image && !heroInContent ? `<img class="hero" src="${esc(a.image)}" alt="" referrerpolicy="no-referrer">` : ''}${a.content}`
@@ -54,7 +59,7 @@ export async function openReader(items, idx) {
   $('#reader-prev').disabled = idx <= 0;
   $('#reader-next').disabled = idx >= items.length - 1;
   const frame = $('#reader-frame');
-  frame.removeAttribute('src'); frame.srcdoc = '<body style="background:#12161c"></body>';
+  frame.removeAttribute('src'); frame.srcdoc = `<body style="background:${isLight() ? '#fff' : '#12161c'}"></body>`;
   $('#reader-msg').innerHTML = '<div><div class="spinner"></div>Loading article…</div>';
   let a;
   try { a = await (await fetch(`/api/article?url=${encodeURIComponent(item.link)}`)).json(); } catch (e) { a = { ok: false, error: e.message }; }

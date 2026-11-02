@@ -65,6 +65,17 @@ async function main() {
   setupReader();
   await L.restore(presets);
 
+  // bar: theme toggle (dark is the default; light is remembered in localStorage us-dash-theme)
+  const themeBtn = $('#bar-theme');
+  const setTheme = (light) => {
+    if (light) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
+    const label = light ? 'Switch to dark mode' : 'Switch to light mode';
+    themeBtn.textContent = light ? '☀' : '☾'; themeBtn.title = label; themeBtn.setAttribute('aria-label', label); themeBtn.setAttribute('aria-pressed', String(light));
+    try { localStorage.setItem('us-dash-theme', light ? 'light' : 'dark'); } catch {}
+  };
+  setTheme(document.documentElement.dataset.theme === 'light');
+  themeBtn.addEventListener('click', () => setTheme(document.documentElement.dataset.theme !== 'light'));
+
   // bar: clock (ET), status, share, reset
   const clock = () => { $('#clock').textContent = `${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET`; };
   clock(); setInterval(clock, 10000);
