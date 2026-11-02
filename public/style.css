@@ -399,7 +399,9 @@ table.mini td { padding: 3px 8px 3px 0; border: 0; }
 .transport button, .transport select { background: var(--panel-2); color: var(--text-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 9px; font-size: 12px; cursor: pointer; height: 24px; }
 .transport button:hover { color: var(--text); border-color: var(--text-2); }
 .transport .tl-live.on { color: #fff; background: #8a2c2c; border-color: #b33a3a; }
-.transport .tl-live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-right: 6px; vertical-align: 1px; }
+.transport .tl-live.on::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-right: 6px; vertical-align: 1px; animation: pulse-live 1.6s infinite; }
+@keyframes pulse-live { 0% { box-shadow: 0 0 0 0 rgba(255,107,107,.7); } 70% { box-shadow: 0 0 0 5px rgba(255,107,107,0); } 100% { box-shadow: 0 0 0 0 rgba(255,107,107,0); } }
+@media (prefers-reduced-motion: reduce) { .transport .tl-live.on::before { animation: none; } }
 .transport .tl-play { width: 32px; padding: 0; }
 .tl-track { position: relative; flex: 1; height: 24px; margin: 0; border-radius: 5px; background: var(--panel-2); border: 1px solid var(--border); cursor: pointer; touch-action: none; min-width: 120px; }
 .tl-track:focus-visible { outline: 2px solid var(--accent); }
@@ -470,8 +472,6 @@ body.wm-dragging, body.wm-dragging .panel-head { cursor: grabbing; }
 .bar-right { justify-content: flex-end; }
 .bar h1 { font-size: 13px; font-weight: 600; white-space: nowrap; }
 .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.live-dot { width: 9px; height: 9px; border-radius: 50%; background: #e5484d; animation: pulse 1.6s infinite; flex: none; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(229,72,77,.6);} 70% { box-shadow: 0 0 0 8px rgba(229,72,77,0);} 100% { box-shadow: 0 0 0 0 rgba(229,72,77,0);} }
 .bar-center { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; }
 .status { color: var(--text-2); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .workspaces { display: flex; gap: 4px; }
