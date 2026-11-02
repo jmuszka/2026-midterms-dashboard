@@ -118,7 +118,9 @@ export function createWM({ desk, title = (id) => id, onClose = () => {}, onChang
     const db = desk.getBoundingClientRect();
     const barH = db.top + scrollY; // fullscreen also covers the bar and any banner
     const footH = Math.max(0, innerHeight - db.bottom); // …and the credits line below the desktop
+    const ghost = R.drag?.ghost ? R.drag.id : null;
     for (const [id, el] of wins) {
+      if (id === ghost) continue; // being dragged: out of the tree, but on screen under the pointer
       const w = where(id);
       el.classList.toggle('closed', !w);
       el.classList.toggle('active', id === S.focus && !!w);
@@ -129,7 +131,7 @@ export function createWM({ desk, title = (id) => id, onClose = () => {}, onChang
     }
     document.body.classList.toggle('special-open', R.specialOpen);
     renderBar();
-    onChange(S);
+    if (!ghost) onChange(S); // never persist the layout with the dragged window missing
   }
   // stacking order for the phone layout: workspace, then position in the tree
   function order(id) {
@@ -402,11 +404,24 @@ export function createWM({ desk, title = (id) => id, onClose = () => {}, onChang
     R.drag = drag;
     desk.setPointerCapture(e.pointerId);
     document.body.classList.add('wm-dragging');
+    if (drag.type !== 'move') document.body.classList.add('wm-snap'); // divider/resize: no animation lag
     if (drag.type === 'move') wins.get(drag.id).classList.add('dragging');
     if (drag.hx) drag.hx0 = drag.hx.node.ratio;
     if (drag.vy) drag.vy0 = drag.vy.node.ratio;
     if (drag.kind === 'float') drag.f0 = { ...S.floating[drag.id] };
+    if (drag.type === 'move' && drag.kind !== 'float') {
+      // Hyprland: a tiled window being dragged leaves the layout at once. The others re-tile as if
+      // it were closed; dropping it on a window splits that space, dropping it on nothing puts the
+      // original tree back.
+      const key = drag.kind === 'special' ? 'special' : S.active;
+      drag.key = key; drag.tree0 = cloneTree(key === 'special' ? S.special : S.ws[key]); drag.ghost = true;
+      detach(drag.id);
+      render();
+    }
   }
+  const cloneTree = (n) => (!n ? null : n.id ? leaf(n.id) : { dir: n.dir, ratio: n.ratio, a: cloneTree(n.a), b: cloneTree(n.b) });
+  const dropTarget = (d, p) => onScreen().find((id) => id !== d.id && where(id)?.kind !== 'float' && inRect(p, R.rects[id]));
+  const markTarget = (id) => { for (const [k, el] of wins) el.classList.toggle('drop-target', k === id); };
   desk.addEventListener('pointermove', (e) => {
     const d = R.drag; if (!d) return;
     const p = local(e), A = area();
@@ -417,7 +432,7 @@ export function createWM({ desk, title = (id) => id, onClose = () => {}, onChang
     } else if (d.type === 'move') {
       const dx = p.x - d.start.x, dy = p.y - d.start.y;
       if (d.kind === 'float') { S.floating[d.id].x = d.f0.x + dx / A.W; S.floating[d.id].y = d.f0.y + dy / A.H; render(); }
-      else { const el = wins.get(d.id); el.style.left = `${d.r.x + dx}px`; el.style.top = `${d.r.y + dy}px`; }
+      else { const el = wins.get(d.id); el.style.left = `${d.r.x + dx}px`; el.style.top = `${d.r.y + dy}px`; if (d.ghost) markTarget(dropTarget(d, p)); }
     } else if (d.type === 'resize') {
       const dx = p.x - d.start.x, dy = p.y - d.start.y;
       if (d.kind === 'float') {
@@ -437,13 +452,14 @@ export function createWM({ desk, title = (id) => id, onClose = () => {}, onChang
   const endDrag = (e) => {
     const d = R.drag; if (!d) return;
     R.drag = null;
-    document.body.classList.remove('wm-dragging');
+    document.body.classList.remove('wm-dragging', 'wm-snap');
     if (d.type === 'move') {
       wins.get(d.id)?.classList.remove('dragging');
-      if (d.kind !== 'float') {
-        const p = local(e);
-        const target = onScreen().find((id) => id !== d.id && where(id)?.kind !== 'float' && inRect(p, R.rects[id]));
-        if (target) { const key = d.kind === 'special' ? 'special' : S.active; detach(d.id); insertTiled(key, d.id, target, p); }
+      markTarget(null);
+      if (d.ghost) {
+        const p = local(e), target = dropTarget(d, p);
+        if (target) insertTiled(d.key, d.id, target, p);
+        else if (d.key === 'special') S.special = d.tree0; else S.ws[d.key] = d.tree0;
       }
     }
     render();

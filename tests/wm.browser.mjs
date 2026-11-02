@@ -103,6 +103,26 @@ const nr2 = await rect('feed-1'), mr2 = await rect('map-1');
 check('dragging the feed title bar onto the map\'s right half tiles it there', nr2[0] > mr2[0] && Math.abs(nr2[1] - mr2[1]) < 4 && t0 !== await tree(), JSON.stringify({ nr2, mr2 }));
 check('cursor is grab on title bars', (await ev(`getComputedStyle(document.querySelector('.win[data-win="map-1"] .panel-head')).cursor`)) === 'grab');
 
+// 6a. Hyprland drag: while a tiled window is dragged the others re-tile around the hole at once,
+// the window under the pointer is marked as the drop target, and a drop on nothing restores the tree
+{
+  const allRects = () => ev(`Object.fromEntries([...document.querySelectorAll('.win:not(.closed):not(.offscreen)')].map(w => { const r = w.getBoundingClientRect(); return [w.dataset.win, [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)]]; }))`);
+  const t0 = await tree(), before = await allRects(), nr = before['news-1'];
+  const hx = nr[0] + 40, hy = nr[1] + 12, px = hx - 480, py = hy + 320;
+  await mouse('mouseMoved', hx, hy, 'none'); await mouse('mousePressed', hx, hy);
+  for (let k = 1; k <= 8; k++) { await mouse('mouseMoved', hx + ((px - hx) * k) / 8, hy + ((py - hy) * k) / 8); await sleep(30); }
+  await sleep(600);
+  const mid = await allRects();
+  const others = Object.keys(before).filter((id) => id !== 'news-1');
+  check('mid-drag: the other windows re-tile around the hole', others.some((id) => JSON.stringify(mid[id]) !== JSON.stringify(before[id])), JSON.stringify({ before, mid }));
+  check('mid-drag: dragged window stays visible and follows the pointer', await ev(`(() => { const w = document.querySelector('.win[data-win="news-1"]'); return !w.classList.contains('closed') && w.classList.contains('dragging'); })()`));
+  const under = others.find((id) => { const r = mid[id]; return px >= r[0] && px < r[0] + r[2] && py >= r[1] && py < r[1] + r[3]; });
+  check('mid-drag: window under the pointer is the drop target', !!under && (await ev(`document.querySelector('.win.drop-target')?.dataset.win`)) === under, `${under} vs ${await ev(`document.querySelector('.win.drop-target')?.dataset.win`)}`);
+  await mouse('mouseMoved', 600, 5); await sleep(50); await mouse('mouseReleased', 600, 5); await sleep(700); // drop on the bar: nothing there
+  check('drop on nothing restores the original layout', t0 === await tree() && JSON.stringify(await allRects()) === JSON.stringify(before));
+  check('no drop-target left behind', !(await ev(`!!document.querySelector('.win.drop-target')`)));
+}
+
 // 7. workspaces
 await key('2', 'alt');
 check('Alt+2 shows seats, race card and browser', (await visibleWins()) === 'chamber-1,chamber-2,race-1,races-1' && JSON.parse(await S()).active === 2, await visibleWins());

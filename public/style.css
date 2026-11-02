@@ -447,7 +447,8 @@ body.special-open #desktop::after { content: ""; position: absolute; inset: 0; b
 .win.dragging { transition: none; z-index: 70 !important; opacity: .9; }
 .win.fullscreen { padding: 0; border-radius: 0; box-shadow: none; }
 .win.fullscreen > .panel { border-radius: 0; }
-body.wm-boot .win, body.wm-dragging .win { transition: none !important; }
+body.wm-boot .win, body.wm-snap .win { transition: none !important; } /* resize/divider drags snap; a move lets the others animate into the gap */
+.win.drop-target > .panel { outline: 2px dashed color-mix(in srgb, var(--dem) 70%, var(--gop)); outline-offset: -2px; }
 body.wm-dragging, body.wm-dragging * { user-select: none; }
 body.wm-dragging iframe, body.mod-down iframe { pointer-events: none; }
 body.mod-down .win { cursor: move; }
