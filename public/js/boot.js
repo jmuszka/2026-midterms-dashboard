@@ -30,7 +30,7 @@ function credits() {
     '<b>Odds</b> Kalshi, Polymarket, PredictIt (markets, not results)',
     '<b>Quotes</b> CNBC',
     '<b>News</b> publishers\' RSS feeds, Google News',
-    '<b>Posts</b> Bluesky, Truth Social',
+    '<b>Posts</b> Bluesky, X, Truth Social',
     '<b>Searches</b> Google Trends',
     '<b>Maps</b> US Census Bureau',
     '<b>Video</b> each channel\'s own player',
