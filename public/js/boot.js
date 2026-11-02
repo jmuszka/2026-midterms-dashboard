@@ -37,8 +37,9 @@ function credits() {
   const el = $('#credits');
   const sources = `${parts.join(' · ')} · Independent dashboard, not affiliated with any source.`;
   const disclaimer = 'Data is raw, aggregated from these sources as they publish it, and may be incomplete, delayed or later corrected. This dashboard is non-partisan, endorses no candidate or party, and exists for real-time and historical analysis of the election.';
-  el.innerHTML = `<div class="credits-line" id="credits-sources">${sources}</div><div class="credits-line disclaimer" id="disclaimer">${esc(disclaimer)}</div>`;
-  el.querySelectorAll('.credits-line').forEach((l) => { l.title = l.textContent; });
+  const src = $('#credits-sources'); src.innerHTML = sources; src.title = src.textContent; // ribbon under the timeline
+  el.innerHTML = `<div class="credits-line disclaimer" id="disclaimer">${esc(disclaimer)}</div>`; // footer
+  el.querySelector('.disclaimer').title = disclaimer;
 }
 
 async function main() {

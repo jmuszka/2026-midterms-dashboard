@@ -385,7 +385,7 @@ table.mini td { padding: 3px 8px 3px 0; border: 0; }
 .toast.out { opacity: 0; transform: translateY(8px); }
 
 /* ---------- timeline transport ---------- */
-.transport { flex: none; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; background: var(--bar-bg); border-bottom: 1px solid var(--border); position: relative; z-index: 85; }
+.transport { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bar-bg); border-bottom: 1px solid var(--border); position: relative; z-index: 85; }
 .transport[hidden] { display: none; }
 .transport button, .transport select { background: var(--panel-2); color: var(--text-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 9px; font-size: 12px; cursor: pointer; height: 24px; }
 .transport button:hover { color: var(--text); border-color: var(--text-2); }
@@ -406,7 +406,7 @@ table.mini td { padding: 3px 8px 3px 0; border: 0; }
 .tl-time { font: 12px var(--mono); color: var(--text-2); white-space: nowrap; min-width: 210px; }
 .transport.replaying .tl-time b { color: var(--replay); }
 body.replay .status { color: var(--replay); }
-@media (max-width: 900px) { .transport { flex-wrap: wrap; height: auto; padding: 6px 12px; row-gap: 6px; } .tl-track { order: 5; flex-basis: 100%; } .tl-time { min-width: 0; flex: 1 1 0; font-size: 11px; overflow: hidden; text-overflow: ellipsis; } }
+@media (max-width: 900px) { .transport { flex-wrap: wrap; row-gap: 6px; } .tl-track { order: 5; flex-basis: 100%; } .tl-time { min-width: 0; flex: 1 1 0; font-size: 11px; overflow: hidden; text-overflow: ellipsis; } }
 
 /* ---------- scraper paused ---------- */
 .paused-banner { flex: none; text-align: center; font-size: 12px; font-weight: 600; padding: 4px 12px; background: #5a1a1a; color: #fff; border-bottom: 1px solid #8a2c2c; }
@@ -530,10 +530,11 @@ kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(
 
 /* attribution footer: one line on desktop (full text in the tooltip), wraps on phones */
 .credits { flex: none; padding: 0 12px; font-size: 10.5px; color: var(--muted); background: var(--bar-bg); border-top: 1px solid var(--border); }
+.credits.sources { border-top: 0; border-bottom: 1px solid var(--border); } /* the sources ribbon sits under the timeline */
 .credits-line { height: 19px; line-height: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.credits-line.disclaimer { text-align: center; border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent); }
+.credits-line.disclaimer { text-align: center; }
 .credits b { color: var(--text-2); font-weight: 600; }
-@media (max-width: 900px) { .credits { padding: 8px 16px 14px; } .credits-line { height: auto; line-height: 1.5; white-space: normal; padding: 3px 0; } }
+@media (max-width: 900px) { .credits { padding: 8px 16px 14px; } .credits.sources { padding: 6px 16px; } .credits-line { height: auto; line-height: 1.5; white-space: normal; padding: 3px 0; } }
 
 /* ---------- first-visit tour (public/js/tour.js): spotlight + narrative card ---------- */
 .tour { position: fixed; inset: 0; z-index: 118; }
