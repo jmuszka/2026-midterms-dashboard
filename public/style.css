@@ -537,7 +537,7 @@ kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(
 .tour-back { position: absolute; inset: 0; }
 .tour-spot { position: absolute; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .58), 0 0 0 2px var(--dem), 0 0 24px rgba(58, 123, 224, .5); pointer-events: none; transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; }
 :root[data-theme="light"] .tour-spot { box-shadow: 0 0 0 9999px rgba(20, 24, 30, .45), 0 0 0 2px var(--dem), 0 0 24px rgba(58, 123, 224, .4); }
-.tour-card { position: absolute; width: min(400px, calc(100vw - 32px)); background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px 12px; box-shadow: 0 0 0 2px var(--dem), 0 24px 64px rgba(0, 0, 0, .6); animation: pop .16s ease-out; transition: left .3s ease, top .3s ease; }
+.tour-card { position: absolute; width: min(400px, calc(100vw - 32px)); color: var(--text); border: 2px solid transparent; border-radius: 12px; padding: 14px 16px 12px; background: linear-gradient(var(--panel), var(--panel)) padding-box, var(--hypr-active) border-box; box-shadow: 0 24px 64px rgba(0, 0, 0, .6); animation: pop .16s ease-out; transition: left .3s ease, top .3s ease; } /* the active-window gradient as a border */
 .tour-card.fixed { left: 16px !important; right: 16px; bottom: 16px; top: auto !important; width: auto; }
 .tour-step { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 2px; }
 .tour-card h3 { font-size: 15px; margin: 0 0 6px; }
