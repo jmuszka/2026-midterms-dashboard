@@ -50,7 +50,7 @@ check('ws1 shows 5 windows', (await visibleWins()) === 'balance-1,map-1,stream-1
 const [m, v, n, x] = [await rect('map-1'), await rect('stream-1'), await rect('feed-1'), await rect('news-1')];
 const barH = await ev(`document.getElementById('bar').offsetHeight`);
 const deskBottom = await ev(`Math.round(document.getElementById('desktop').getBoundingClientRect().bottom)`); // the credits footer sits below the desktop
-check('outer gap 20px', m[0] === 20 && v[0] + v[2] === 1900 && x[1] + x[3] === deskBottom - 20, JSON.stringify({ m, v, x, deskBottom }));
+check('outer gap 10px, same as between windows', m[0] === 10 && v[0] + v[2] === 1910 && x[1] + x[3] === deskBottom - 10, JSON.stringify({ m, v, x, deskBottom }));
 check('inner gap 10px', v[0] - (m[0] + m[2]) === 10 && n[1] - (v[1] + v[3]) === 10 && x[0] - (n[0] + n[2]) === 10);
 check('active border is the gradient', (await ev(`getComputedStyle(document.querySelector('.win.active')).backgroundImage`)).includes('linear-gradient'));
 await shot('wm-default.png');
@@ -65,14 +65,14 @@ check('Alt+→ focuses news', JSON.parse(await S()).focus === 'news-1', JSON.par
 await key('ArrowUp', 'alt');
 check('Alt+↑ focuses stream', JSON.parse(await S()).focus === 'stream-1', JSON.parse(await S()).focus);
 await key('ArrowLeft', 'alt', 'shift');
-check('Alt+Shift+← swaps stream into the left column', (await rect('stream-1'))[0] === 20, JSON.stringify(await rect('stream-1')));
+check('Alt+Shift+← swaps stream into the left column', (await rect('stream-1'))[0] === 10, JSON.stringify(await rect('stream-1')));
 await key('ArrowLeft', 'alt', 'shift'); // no window to the left: no-op
 const w0 = (await rect('stream-1'))[2];
 await key('ArrowRight', 'alt', 'ctrl');
 check('Alt+Ctrl+→ grows active width', (await rect('stream-1'))[2] > w0, `${w0} -> ${(await rect('stream-1'))[2]}`);
 
 // 4. drag the gap between the two columns
-const lw = (await rect('stream-1'))[2]; const gx = 20 + lw + 5;
+const lw = (await rect('stream-1'))[2]; const gx = 10 + lw + 5;
 await drag(gx, 540, 180, 0);
 check('dragging the gap resizes the split', Math.abs((await rect('stream-1'))[2] - (lw + 180)) < 6, `${lw} -> ${(await rect('stream-1'))[2]}`);
 

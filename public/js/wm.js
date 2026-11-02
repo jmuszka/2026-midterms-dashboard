@@ -1,7 +1,7 @@
 /* Hyprland-style tiling window manager (ES module, no dependencies).
  *
  * Mirrors Hyprland's defaults: dwindle layout (a new window splits the focused or
- * hovered one along its longer side), gaps_in 5 / gaps_out 20, 2px border with the
+ * hovered one along its longer side), gaps_in 5 / gaps_out 10 (Hyprland: 20; outer edge matches the 10px between windows), 2px border with the
  * cyan→green active gradient, rounding 10, focus follows mouse (on real movement
  * only), workspaces 1–9 that slide horizontally, a special (scratchpad) workspace,
  * floating and fullscreen windows, mod+LMB drag to move, mod+RMB drag to resize,
@@ -13,7 +13,7 @@
  * instance is destroyed. Windows on other workspaces are moved with transform,
  * never re-parented, because moving an iframe in the DOM reloads it.
  */
-const CFG = { gapsIn: 5, gapsOut: 20, resizeStep: 40, minRatio: 0.08, floatSize: [0.5, 0.6] };
+const CFG = { gapsIn: 5, gapsOut: 10, resizeStep: 40, minRatio: 0.08, floatSize: [0.5, 0.6] };
 const INTERACTIVE = 'input, textarea, select, button, a, label, summary, form, [contenteditable], .no-drag';
 const HEADER_DRAG_THRESHOLD = 5;
 
