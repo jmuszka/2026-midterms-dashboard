@@ -411,6 +411,14 @@ body.replay .status { color: var(--replay); }
 /* ---------- scraper paused ---------- */
 .paused-banner { flex: none; text-align: center; font-size: 12px; font-weight: 600; padding: 4px 12px; background: #5a1a1a; color: #fff; border-bottom: 1px solid #8a2c2c; }
 .paused-banner[hidden] { display: none; }
+/* permanent site notice (config/notice.json): informational, so a blue tint rather than alert red */
+.notice-banner { flex: none; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 12px; padding: 4px 36px 4px 12px; background: color-mix(in srgb, var(--dem) 16%, var(--panel)); color: var(--text); border-bottom: 1px solid color-mix(in srgb, var(--dem) 40%, var(--border)); position: relative; }
+.notice-banner[hidden] { display: none; }
+.notice-banner a, .notice-banner button.act { font: inherit; font-weight: 600; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 1px 9px; cursor: pointer; text-decoration: none; }
+.notice-banner a:hover, .notice-banner button.act:hover { border-color: var(--text-2); text-decoration: none; }
+.notice-banner .x { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--text-2); font-size: 14px; cursor: pointer; padding: 0 6px; }
+.notice-banner .x:hover { color: var(--text); }
+.tl-track.flash { outline: 2px solid var(--dem); outline-offset: 2px; transition: outline-color .6s; }
 
 /* ---------- simulation ---------- */
 .sim-banner { display: none; }

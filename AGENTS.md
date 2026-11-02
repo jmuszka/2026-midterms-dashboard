@@ -52,6 +52,7 @@ config/races.json                 GENERATED manifest (scripts/build-races.mjs); 
 config/markets.json               GENERATED market ids (scripts/build-markets.mjs)
 config/sources.json               every feed, stream, social list, interval, and the seat balance (holdovers, current)
 config/presets.json               named layouts (first one is the default)
+config/notice.json                permanent site notice banner (text, action); SITE_NOTICE env overrides, 'off' hides
 config/parties.json, states.json  party colours/aliases; states with FIPS, seats, poll close, slow-count and runoff notes
 scripts/                          build-races, build-markets, build-geo, build-favicon, poller
 tests/                            data.test.mjs (offline), smoke.browser.mjs, wm.browser.mjs, fixtures/

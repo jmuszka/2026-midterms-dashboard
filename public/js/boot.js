@@ -65,6 +65,25 @@ async function main() {
   setupReader();
   await L.restore(presets);
 
+  // site notice (config/notice.json via /api/config): permanent until dismissed; a new text shows again
+  const notice = app.config.notice;
+  const nb = $('#notice-banner');
+  const noticeKey = notice ? `us-dash-notice:${notice.text}` : null;
+  let dismissed = false; try { dismissed = !!(noticeKey && localStorage.getItem(noticeKey)); } catch {}
+  if (notice && !dismissed) {
+    const act = notice.href ? `<a href="${esc(notice.href)}" target="_blank" rel="noopener">${esc(notice.actionLabel || notice.href)}</a>`
+      : notice.action ? `<button type="button" class="act" data-action="${esc(notice.action)}">${esc(notice.actionLabel || notice.action)}</button>` : '';
+    nb.innerHTML = `<span>${esc(notice.text)}</span>${act}<button type="button" class="x" title="Dismiss" aria-label="Dismiss notice">✕</button>`;
+    nb.hidden = false;
+    nb.querySelector('.x').addEventListener('click', () => { nb.hidden = true; try { localStorage.setItem(noticeKey, '1'); } catch {} wm.render(); });
+    nb.querySelector('[data-action="timeline"]')?.addEventListener('click', () => {
+      const track = $('#transport .tl-track');
+      if ($('#transport').hidden || !track) { toast('The timeline appears once the night has been recorded.'); return; }
+      track.focus(); track.classList.add('flash'); setTimeout(() => track.classList.remove('flash'), 1500);
+      toast('Drag the timeline, or press ← → to step through the night.');
+    });
+  }
+
   // bar: theme toggle (dark is the default; light is remembered in localStorage us-dash-theme)
   const themeBtn = $('#bar-theme');
   const setTheme = (light) => {
