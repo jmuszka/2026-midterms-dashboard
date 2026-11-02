@@ -47,7 +47,7 @@ function credits() {
     const w = one.getBoundingClientRect().width - (src.classList.contains('scroll') ? pad : 0);
     const scroll = innerWidth > 900 && !matchMedia('(prefers-reduced-motion: reduce)').matches && w > src.clientWidth - 24;
     src.classList.toggle('scroll', scroll);
-    if (scroll) src.style.setProperty('--ticker-s', `${Math.round(one.getBoundingClientRect().width / 40)}s`); // ~40 px/s
+    if (scroll) src.style.setProperty('--ticker-s', `${Math.round(one.getBoundingClientRect().width / 20)}s`); // ~20 px/s
   };
   fit(); new ResizeObserver(fit).observe(src);
   el.innerHTML = `<div class="credits-line disclaimer" id="disclaimer">${esc(disclaimer)}</div>`; // footer
@@ -64,14 +64,13 @@ async function main() {
     title: L.titleOf,
     onClose: L.closed,
     onChange: L.persist,
-    launcherItems: (q, loc) => L.launcherItems(q, loc, presets),
+    launcherItems: (q, loc) => L.launcherItems(q, loc),
     onLaunch: (it) => {
       const [kind, arg, settings] = it.action;
       if (kind === 'focus') wm.open(arg);
       if (kind === 'new') L.create(arg, settings || {});
-      if (kind === 'preset') { L.apply(L.preset(presets, arg)); toast(`Loaded preset <b>${esc(presets[arg].name)}</b>`); }
     },
-    helpExtra: `<h3>Dashboard</h3><p>Every window has a gear for its settings; the launcher (Panels) opens new windows of any type and loads presets. <b>Share</b> copies a link that carries this whole layout.</p>
+    helpExtra: `<h3>Dashboard</h3><p>Every window has a gear for its settings; Panels opens new windows of any type; Layouts loads a named layout. <b>Share</b> copies a link that carries this whole layout.</p>
       <p><button type="button" id="tour-start">Take the tour</button> <span class="muted">a guided walk through every part of the dashboard</span></p>
       <p>${app.sim ? '<a href="?">Leave simulation mode</a>' : '<a href="?sim=1">Open simulation mode</a>: replays a made-up election night at 30× speed so you can try every view before Nov 3.'}</p>
       <p class="muted">Results: CNN (AP) and official state feeds. Markets: Kalshi, Polymarket, PredictIt. Calls are only shown when a source makes them.</p>`,
@@ -130,6 +129,22 @@ async function main() {
     try { await navigator.clipboard.writeText(url); toast('Share link copied. Anyone who opens it gets this exact dashboard.'); }
     catch { prompt('Copy this link to share the dashboard:', url); }
   });
+  // Layouts: the named presets in a menu under the button; choosing one replaces the whole layout
+  const menu = $('#layouts-menu'), lbtn = $('#bar-layouts');
+  menu.innerHTML = Object.entries(presets).map(([k, p]) => `<button type="button" role="menuitem" data-preset="${esc(k)}"><b>${esc(p.name)}</b><span>${esc(p.description)}</span></button>`).join('');
+  const showMenu = (on) => {
+    menu.hidden = !on; lbtn.setAttribute('aria-expanded', String(on));
+    if (on) { // fixed boxes measure from the page width without the scrollbar, which innerWidth includes
+      const r = lbtn.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+      menu.style.top = `${r.bottom + 6}px`; menu.style.right = `${Math.max(8, Math.min(vw - r.right, vw - menu.offsetWidth - 8))}px`; menu.querySelector('button')?.focus(); }
+  };
+  lbtn.addEventListener('click', () => showMenu(menu.hidden));
+  menu.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-preset]'); if (!b) return;
+    showMenu(false); L.apply(L.preset(presets, b.dataset.preset)); toast(`Loaded layout <b>${esc(presets[b.dataset.preset].name)}</b>`);
+  });
+  document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !e.target.closest('#layouts-menu, #bar-layouts')) showMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { showMenu(false); lbtn.focus(); } });
   $('#wm-reset').addEventListener('click', () => { L.apply(L.preset(presets, 'night')); wm.help(false); toast('Layout reset to <b>Election night</b>.'); });
   $('#wm-restore').addEventListener('click', () => {
     try { const b = JSON.parse(localStorage.getItem('us-dash-layout-v1-backup')); if (b) { L.apply(b); wm.help(false); toast('Restored your previous layout.'); } } catch {}

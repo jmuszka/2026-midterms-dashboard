@@ -59,7 +59,7 @@ The WM already serialises its full state (`{ws, special, floating, active, focus
 
 - `#l=<base64url(deflate(JSON))>` in the URL carries the entire dashboard. Copy link = share dashboard. Loading a page with `#l=` offers "Load shared layout / keep mine".
 - localStorage keeps the last layout per browser (already done).
-- `presets.json` ships named layouts: Senate Watch, House Watch, Stream Wall, Pundit Row, Kitchen Sink. The launcher lists them.
+- `presets.json` ships named layouts: Senate Watch, House Watch, Stream Wall, Pundit Row, Kitchen Sink. The Layouts button in the bar lists them.
 - Later, optional: a `layouts` table in the store and `/d/<short>` for short links.
 
 Cookies are not used for layout. They only travel between one browser and the server and cannot be shared.

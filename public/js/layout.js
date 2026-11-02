@@ -228,13 +228,12 @@ function settingsPopover(id, anchor) {
 document.addEventListener('pointerdown', (e) => { const pop = document.querySelector('#popover'); if (pop && !pop.hidden && !e.target.closest('#popover') && !e.target.closest('.gear')) pop.hidden = true; });
 
 /* ---------------- launcher items ---------------- */
-export function launcherItems(q, loc, presets) {
+export function launcherItems(q, loc) {
   const m = (s) => !q || s.toLowerCase().includes(q);
   return [
     ...Object.keys(inst).filter((id) => m(titleOf(id))).map((id) => ({ group: 'Open windows', label: esc(titleOf(id)), sub: loc(id), action: ['focus', id] })),
     ...Object.values(TYPES).filter((t) => m(`new ${t.name}`)).map((t) => ({ group: 'New window', label: esc(t.name), sub: 'opens on this workspace', action: ['new', t.type] })),
     ...Object.values(TYPES).flatMap((t) => (t.launch ? t.launch() : []).filter((f) => m(`feed ${f.label} ${f.sub}`)).map((f) => ({ group: 'New feed (a social media feed, preset)', label: esc(f.label), sub: esc(f.sub), action: ['new', t.type, f.settings] }))),
-    ...Object.entries(presets).filter(([, p]) => m(`preset ${p.name} ${p.description}`)).map(([k, p]) => ({ group: 'Presets (replace the layout)', label: esc(p.name), sub: esc(p.description), action: ['preset', k] })),
   ];
 }
 

@@ -20,8 +20,9 @@
     <span class="status" id="status">Loading…</span>
     <span class="clock" id="clock"></span>
     <button type="button" id="bar-theme" title="Switch to light mode" aria-label="Switch to light mode" aria-pressed="false">☀</button>
-    <button type="button" id="bar-share" title="Copy a link to this exact dashboard">Share</button>
-    <button type="button" id="bar-launch" title="New window, presets, open windows (mod+R)">Panels</button>
+    <button type="button" id="bar-share" title="Copy a link to this exact dashboard" aria-label="Share"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+    <button type="button" id="bar-launch" title="New window, open windows (mod+R)">Panels</button>
+    <button type="button" id="bar-layouts" title="Load a named layout (replaces the current one)" aria-haspopup="menu" aria-expanded="false">Layouts</button>
     <button type="button" id="bar-help" title="Keybinds and help (mod+/)">?</button>
   </div>
 </header>
@@ -53,6 +54,7 @@
   </div>
 </div>
 <div class="popover" id="popover" hidden></div>
+<div class="menu" id="layouts-menu" role="menu" aria-label="Layouts" hidden></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="tooltip" id="tooltip" hidden></div>
 
