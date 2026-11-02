@@ -35,8 +35,10 @@ function credits() {
     '<b>Video</b> each channel\'s own player',
   ];
   const el = $('#credits');
-  el.innerHTML = `${parts.join(' · ')} · Independent dashboard, not affiliated with any source.`;
-  el.title = el.textContent;
+  const sources = `${parts.join(' · ')} · Independent dashboard, not affiliated with any source.`;
+  const disclaimer = 'Data is raw, aggregated from these sources as they publish it, and may be incomplete, delayed or later corrected. This dashboard is non-partisan, endorses no candidate or party, and exists for real-time and historical analysis of the election.';
+  el.innerHTML = `<div class="credits-line" id="credits-sources">${sources}</div><div class="credits-line disclaimer" id="disclaimer">${esc(disclaimer)}</div>`;
+  el.querySelectorAll('.credits-line').forEach((l) => { l.title = l.textContent; });
 }
 
 async function main() {
