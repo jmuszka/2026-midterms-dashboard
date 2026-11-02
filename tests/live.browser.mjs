@@ -25,6 +25,7 @@ const check = (label, ok, extra = '') => { if (!ok) fails++; console.log(`${ok ?
 const waitFor = async (expr, ms) => { for (let t = 0; t < ms; t += 250) { if (await ev(expr)) return true; await sleep(250); } return false; };
 
 await send('Runtime.enable'); await send('Network.enable');
+await send('Page.enable'); await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('us-dash-tour-v1', '1'); } catch {}` }); // no first-visit tour over the test
 await send('Emulation.setDeviceMetricsOverride', { width: 1600, height: 1000, deviceScaleFactor: 1, mobile: false });
 await send('Page.navigate', { url });
 await waitFor(`document.querySelectorAll('.win').length > 5`, 20000);

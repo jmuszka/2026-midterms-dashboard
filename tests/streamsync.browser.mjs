@@ -24,6 +24,7 @@ const state = () => ev(`(() => { const b = ${box}; const f = b.querySelector(':s
 const pick = (sourceId) => ev(`(() => { const s = document.querySelector('[data-win="stream-1"] .pick'); s.value = '${sourceId}'; s.dispatchEvent(new Event('change', { bubbles: true })); })()`);
 
 await send('Runtime.enable');
+await send('Page.enable'); await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('us-dash-tour-v1', '1'); } catch {}` }); // no first-visit tour over the test
 await send('Emulation.setDeviceMetricsOverride', { width: 1600, height: 1000, deviceScaleFactor: 1, mobile: false });
 await send('Page.navigate', { url });
 await waitFor(`!document.querySelector('#transport').hidden && !!${box}`, 30000);

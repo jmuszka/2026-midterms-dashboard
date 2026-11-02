@@ -40,6 +40,7 @@ const visibleWins = () => ev(`[...document.querySelectorAll('.win')].filter(w =>
 const check = (label, ok, extra = '') => console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${extra ? '  ' + extra : ''}`);
 
 await send('Runtime.enable');
+await send('Page.enable'); await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('us-dash-tour-v1', '1'); } catch {}` }); // no first-visit tour over the test
 await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
 const load = async () => { await send('Page.navigate', { url }); for (let i = 0; i < 40; i++) { await sleep(500); if (await ev(`!!window.wm && document.querySelectorAll('[data-win="map-1"] path.area').length > 0`)) break; } await sleep(900); };
 await load();

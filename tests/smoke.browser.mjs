@@ -33,6 +33,20 @@ await send('Page.navigate', { url: `${base}/?sim=1&simAt=${simAt}` });
 check('app booted (windows present)', await waitFor(`document.querySelectorAll('.win').length > 10`), await ev(`document.querySelectorAll('.win').length`));
 await sleep(4000);
 
+// first-visit tour: shows once, Next/Back move the spotlight, Skip ends it and is remembered
+check('tour opens on the first visit', await waitFor(`!!document.querySelector('#tour') && /Welcome/.test(document.querySelector('#tour-title').textContent)`, 5000), await ev(`document.querySelector('#tour-title')?.textContent`));
+check('tour marks the visit as seen', await ev(`localStorage.getItem('us-dash-tour-v1') === '1'`));
+await ev(`document.querySelector('#tour .tour-next').click()`); await sleep(400);
+const stepTitle = await ev(`document.querySelector('#tour-title').textContent`);
+check('Next moves to the status step with the spotlight on it', stepTitle === 'The status line' && await ev(`(() => { const s = document.querySelector('#tour .tour-spot').getBoundingClientRect(), t = document.querySelector('#status').getBoundingClientRect(); return Math.abs(s.left + 6 - t.left) < 2 && Math.abs(s.top + 6 - t.top) < 2; })()`), stepTitle);
+await ev(`document.querySelector('#tour .tour-next').click()`); await sleep(400);
+check('third step spotlights the balance window', await ev(`document.querySelector('#tour-title').textContent === 'Balance of power'`), await ev(`document.querySelector('#tour-title').textContent`));
+await ev(`document.querySelector('#tour .tour-back-btn').click()`); await sleep(400);
+check('Back returns to the previous step', await ev(`document.querySelector('#tour-title').textContent === 'The status line'`));
+await shot('tour.png');
+await ev(`document.querySelector('#tour .tour-skip').click()`); await sleep(300);
+check('Skip closes the tour', await ev(`!document.querySelector('#tour')`));
+
 const visible = () => ev(`[...document.querySelectorAll('.win')].filter(w => !w.classList.contains('closed') && !w.classList.contains('offscreen')).map(w => w.dataset.win).join(',')`);
 // workspace 1
 check('ws1 windows', (await visible()) === 'balance-1,map-1,stream-1,feed-1,news-1', await visible());
@@ -126,6 +140,7 @@ const link = await ev(`(async () => { const m = await import('/js/layout.js'); r
 check('share link generated', typeof link === 'string' && /#l=z/.test(link), String(link).slice(0, 80) + '…');
 await send('Page.navigate', { url: link.replace(/\?[^#]*/, '?sim=1&simAt=' + simAt) });
 await waitFor(`document.querySelectorAll('.win').length > 10`); await sleep(2500);
+check('tour does not return on a later visit', !(await ev(`!!document.querySelector('#tour')`)));
 check('shared link restores the new stream window', await ev(`!!document.querySelector('[data-win="stream-2"]')`));
 check('light mode survives a reload', await ev(`document.documentElement.dataset.theme === 'light' && document.querySelector('#bar-theme').textContent === '☀'`));
 await ev(`document.querySelector('#bar-theme').click()`); await sleep(200);

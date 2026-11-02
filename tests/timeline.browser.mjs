@@ -28,6 +28,7 @@ const waitFor = async (expr, ms = 20000) => { for (let t = 0; t < ms; t += 250) 
 const mods = `const C = await import('/js/clock.js'); const T = await import('/js/timeline.js'); const H = await import('/js/core.js');`;
 
 await send('Runtime.enable');
+await send('Page.enable'); await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem('us-dash-tour-v1', '1'); } catch {}` }); // no first-visit tour over the test
 await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
 await send('Page.navigate', { url: `${base}/?sim=1&simAt=${SIM_AT}` });
 check('transport strip appears once the timeline loads', await waitFor(`!document.querySelector('#transport').hidden`, 30000));

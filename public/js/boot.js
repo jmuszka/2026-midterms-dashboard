@@ -5,6 +5,7 @@ import * as L from './layout.js';
 import { setupReader } from './reader.js';
 import { startLive } from './live.js';
 import { startTransport } from './transport.js';
+import { startTour, tourSeen } from './tour.js';
 import balance from './views/balance.js';
 import map from './views/map.js';
 import chamber from './views/chamber.js';
@@ -56,6 +57,7 @@ async function main() {
       if (kind === 'preset') { L.apply(L.preset(presets, arg)); toast(`Loaded preset <b>${esc(presets[arg].name)}</b>`); }
     },
     helpExtra: `<h3>Dashboard</h3><p>Every window has a gear for its settings; the launcher (Panels) opens new windows of any type and loads presets. <b>Share</b> copies a link that carries this whole layout.</p>
+      <p><button type="button" id="tour-start">Take the tour</button> <span class="muted">a guided walk through every part of the dashboard</span></p>
       <p>${app.sim ? '<a href="?">Leave simulation mode</a>' : '<a href="?sim=1">Open simulation mode</a>: replays a made-up election night at 30× speed so you can try every view before Nov 3.'}</p>
       <p class="muted">Results: CNN (AP) and official state feeds. Markets: Kalshi, Polymarket, PredictIt. Calls are only shown when a source makes them.</p>`,
   });
@@ -120,6 +122,11 @@ async function main() {
   subscribeEvents(() => {}); // keep events flowing for toasts even when no feed window is open
   startLive();
   startTransport();
+  // first visit: the guided tour, once the windows have drawn. ?tour=1 forces it, ?tour=0 skips it.
+  $('#help').addEventListener('click', (e) => { if (e.target.id === 'tour-start') { wm.help(false); startTour({ force: true }); } });
+  const tourParam = new URLSearchParams(location.search).get('tour');
+  if (tourParam === '1') setTimeout(() => startTour({ force: true }), 1200);
+  else if (tourParam !== '0') setTimeout(() => { if (!tourSeen()) startTour(); }, 1200);
   // a share link pasted into a tab already on the dashboard only changes the hash: load it properly
   addEventListener('hashchange', () => { if (/^#l=/.test(location.hash)) location.reload(); });
 }
