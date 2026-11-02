@@ -32,8 +32,10 @@ function parseYouTube(s) {
   const m = s.match(/(?:youtu\.be\/|v=|\/live\/|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{11})/) || s.match(/^([A-Za-z0-9_-]{11})$/);
   return m ? m[1] : null;
 }
-function embedUrl(src, live, muted) {
-  const mute = muted ? 1 : 0;
+// Embeds start muted so autoplay is allowed; sound is the player's own button (YouTube ignores
+// our mute state once the user touches its control, so there is no setting for it).
+function embedUrl(src, live) {
+  const mute = 1, muted = true; // Twitch/Kick take booleans
   if (src.platform === 'custom') return `https://www.youtube.com/embed/${src.videoId}?autoplay=1&mute=${mute}`;
   if (src.platform === 'twitch') return `https://player.twitch.tv/?channel=${encodeURIComponent(src.channel)}&parent=${location.hostname}&muted=${!!muted}&autoplay=true`;
   if (src.platform === 'kick') return `https://player.kick.com/${encodeURIComponent(src.channel)}?autoplay=true&muted=${!!muted}`;
@@ -43,10 +45,9 @@ function embedUrl(src, live, muted) {
 
 export default {
   type: 'stream', name: 'Live stream',
-  defaults: { source: 'nbc', muted: true, cycle: 0, liveOnly: true, custom: '' },
+  defaults: { source: 'nbc', cycle: 0, liveOnly: true, custom: '' },
   settings: [
     { key: 'source', label: 'Source', options: () => app.config.streams.map((s) => [s.id, s.name]) },
-    { key: 'muted', label: 'Sound', options: [[true, 'Muted'], [false, 'Sound on']] },
     { key: 'cycle', label: 'Auto-cycle', options: [[0, 'Off'], [60, 'Every minute'], [120, 'Every 2 min'], [300, 'Every 5 min'], [600, 'Every 10 min']] },
     { key: 'liveOnly', label: 'Prev/next', options: [[true, 'Live sources only'], [false, 'All sources']] },
   ],
@@ -80,7 +81,7 @@ export default {
       if (clock.mode === 'replay' && streamAt(current().id, clock.t) !== undefined) return sync();
       const src = current();
       leaveReplay();
-      const url = embedUrl(src, live[src.id], settings.muted);
+      const url = embedUrl(src, live[src.id]);
       if (frame.dataset.src !== url) { frame.src = url; frame.dataset.src = url; }
       const l = live[src.id];
       body.querySelector('.live-note').textContent = l?.status === 'live' ? `Live: ${l.title || ''}` : l?.status === 'upcoming' ? `Scheduled: ${l.title || ''}` : l?.status === 'offline' ? 'Not live right now' : '';
@@ -143,9 +144,9 @@ export default {
         playerVideo = tgt.videoId; pendingSeek = pos;
         player = new YT.Player(rp.firstElementChild, {
           videoId: tgt.videoId, width: '100%', height: '100%',
-          playerVars: { autoplay: 0, start: Math.floor(pos), playsinline: 1, rel: 0, mute: settings.muted ? 1 : 0, origin: location.origin },
+          playerVars: { autoplay: 0, start: Math.floor(pos), playsinline: 1, rel: 0, mute: 1, origin: location.origin },
           events: {
-            onReady: () => { playerReady = true; if (settings.muted) player.mute(); sync(); },
+            onReady: () => { playerReady = true; sync(); },
             // published for tests and debugging: the player's real state and position
             onStateChange: (e) => { box.dataset.ytState = String(e.data); box.dataset.ytTime = (player.getCurrentTime?.() || 0).toFixed(1); box.dataset.ytDuration = (player.getDuration?.() || 0).toFixed(1); },
           },

@@ -312,8 +312,7 @@
       "stream-1": [
         "stream",
         {
-          "source": "nbc",
-          "muted": false
+          "source": "nbc"
         }
       ],
       "stream-2": [

@@ -121,7 +121,7 @@ Plus the smaller ones:
 - Keep the YouTube embed. Add a source carousel: previous/next buttons, keyboard shortcut, optional auto-cycle, and a picker from `sources.json`.
 - Server-side live-ID resolver (`/api/live`): for each configured channel fetch `/live`, parse canonical + `isLiveNow`, confirm in one `videos.list` batch (1 quota unit), cache 60–120 s. Fall back to `embed/live_stream?channel=` only for single-stream 24/7 channels (NBC, ABC, Al Jazeera, DW, France 24, CBC). Never use `search.list` (100 calls/day cap).
 - Twitch (`player.twitch.tv` with `parent` for every host), Kick (`player.kick.com/<slug>`), Rumble (embed id scraped) as additional platforms in the same source model.
-- A "Stream Wall" preset opens four stream windows with one unmuted.
+- A "Stream Wall" preset opens four stream windows (all muted; sound is the player's own control).
 - Optional chat window: Twitch chat embed or YouTube live chat for the active stream.
 
 ### 3.8 Feeds
