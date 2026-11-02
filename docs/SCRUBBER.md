@@ -171,7 +171,7 @@ Builder: `lib/timeline.mjs` with `bundleFromTicks(rows, markets, events, streams
 
 On Nov 1 the full bundle was 2 MB of JSON (441 KB compressed). It took 7 s to build because it went back to the first recording on Oct 25: 42,000 market ticks, most of them 15-minute keepalives for safe races. Vote-count rows on the night could push it past Vercel's 4.5 MB function response limit. Three changes:
 - **Start time.** The full bundle starts at 3 pm ET on Nov 3; before then it covers the last 24 hours (`bundleFloor` in `lib/timeline.mjs`). Stock prices start 24 hours earlier for the intraday chart. `?since=` requests are not floored.
-- **Thinner market ticks.** Races rated safe or likely (|score| ≥ 2) get a tick only on a move of a point or more, or hourly. Competitive races, control and world questions keep every change plus the 15-minute keepalive.
+- **Thinner market ticks in the bundle.** Every market move is stored (since 2026-11-02, for the archive). The bundle sends races rated safe or likely (|score| ≥ 2) only on a move of a point or more, hourly, and the latest value (`thinSeries` in `lib/timeline.mjs`). Competitive races, control and world questions go in full with the 15-minute keepalive.
 - **Compression in the function.** `api/[route].mjs` sends bodies over 32 KB with brotli or gzip itself (`vary: accept-encoding`), so the 4.5 MB limit applies to the compressed size. That is about 4.5 times as much JSON.
 
 ## 3. The clock (browser)

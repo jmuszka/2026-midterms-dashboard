@@ -291,3 +291,10 @@ test('county tables: compact stored form expands back to the same rows', async (
   assert.deepEqual(back[0], list[0]);
   assert.deepEqual(back[1].candidates.map((x) => x.votes), [55, 45]);
 });
+
+test('timeline: safe-race market series thinned to point moves, hourly points and the latest', async () => {
+  const { thinSeries } = await import('../lib/timeline.mjs');
+  const m = { t: [0, 60, 120, 180, 3700, 3760], v: [0.05, 0.051, 0.052, 0.065, 0.066, 0.067] };
+  assert.deepEqual(thinSeries(m), { t: [0, 180, 3760], v: [0.05, 0.065, 0.067] });
+  assert.deepEqual(thinSeries({ t: [0, 4000, 4060], v: [0.1, 0.1, 0.1] }), { t: [0, 4000, 4060], v: [0.1, 0.1, 0.1] });
+});
