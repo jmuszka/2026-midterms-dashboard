@@ -159,7 +159,7 @@ await send('Page.navigate', { url: link.replace(/\?[^#]*/, '?sim=1&simAt=' + sim
 await waitFor(`document.querySelectorAll('.win').length > 10`); await sleep(2500);
 check('tour does not return on a later visit', !(await ev(`!!document.querySelector('#tour')`)));
 check('shared link restores the new stream window', await ev(`!!document.querySelector('[data-win="stream-2"]')`));
-check('light mode survives a reload', await ev(`document.documentElement.dataset.theme === 'light' && document.querySelector('#bar-theme').textContent === '☀'`));
+check('light mode survives a reload', await ev(`document.documentElement.dataset.theme === 'light' && document.querySelector('#bar-theme').textContent === '☾'`));
 await ev(`document.querySelector('#bar-theme').click()`); await sleep(200);
 check('theme button switches back to dark', await ev(`!document.documentElement.dataset.theme && localStorage.getItem('us-dash-theme') === 'dark'`));
 check('shared link restores the ratings map setting', await ev(`JSON.parse(localStorage.getItem('us-dash-layout-v1')).inst['map-2'].settings.mode === 'rating'`));
