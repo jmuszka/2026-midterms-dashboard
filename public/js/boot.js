@@ -38,7 +38,18 @@ function credits() {
   const el = $('#credits');
   const sources = `${parts.join(' · ')} · Independent dashboard, not affiliated with any source.`;
   const disclaimer = 'Data is raw, aggregated from these sources as they publish it, and may be incomplete, delayed or later corrected. This dashboard is non-partisan, endorses no candidate or party, and exists for real-time and historical analysis of the election.';
-  const src = $('#credits-sources'); src.innerHTML = sources; src.title = src.textContent; // ribbon under the timeline
+  // ribbon under the timeline: a looping ticker (two copies, shifted by one copy's width) when it does not fit on one line
+  const src = $('#credits-sources');
+  src.innerHTML = `<span class="ticker"><span>${sources}</span><span aria-hidden="true">${sources}</span></span>`;
+  const one = src.querySelector('.ticker span'); src.title = one.textContent;
+  const fit = () => {
+    const pad = parseFloat(getComputedStyle(one).paddingRight) || 0;
+    const w = one.getBoundingClientRect().width - (src.classList.contains('scroll') ? pad : 0);
+    const scroll = innerWidth > 900 && !matchMedia('(prefers-reduced-motion: reduce)').matches && w > src.clientWidth - 24;
+    src.classList.toggle('scroll', scroll);
+    if (scroll) src.style.setProperty('--ticker-s', `${Math.round(one.getBoundingClientRect().width / 40)}s`); // ~40 px/s
+  };
+  fit(); new ResizeObserver(fit).observe(src);
   el.innerHTML = `<div class="credits-line disclaimer" id="disclaimer">${esc(disclaimer)}</div>`; // footer
   el.querySelector('.disclaimer').title = disclaimer;
 }

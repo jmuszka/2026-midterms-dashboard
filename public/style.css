@@ -542,6 +542,12 @@ kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(
 .credits.sources { border-top: 0; border-bottom: 1px solid var(--border); } /* the sources ribbon sits under the timeline */
 .credits-line { height: 19px; line-height: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .credits-line.disclaimer { text-align: center; }
+.credits.sources .ticker > span + span { display: none; }
+.credits.sources.scroll { text-overflow: clip; }
+.credits.sources.scroll .ticker { display: inline-block; animation: ticker var(--ticker-s, 60s) linear infinite; }
+.credits.sources.scroll .ticker > span { display: inline-block; padding-right: 48px; }
+.credits.sources.scroll:hover .ticker { animation-play-state: paused; }
+@keyframes ticker { to { transform: translateX(-50%); } }
 .credits b { color: var(--text-2); font-weight: 600; }
 @media (max-width: 900px) { .credits { padding: 8px 16px 14px; } .credits.sources { padding: 6px 16px; } .credits-line { height: auto; line-height: 1.5; white-space: normal; padding: 3px 0; } }
 
