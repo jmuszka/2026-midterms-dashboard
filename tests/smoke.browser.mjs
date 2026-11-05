@@ -58,7 +58,7 @@ check('news: articles listed', await waitFor(`document.querySelectorAll('[data-w
 check('stream: iframe pointed at a YouTube embed', await ev(`/youtube\\.com\\/embed\\//.test(document.querySelector('[data-win="stream-1"] iframe').src)`), await ev(`document.querySelector('[data-win="stream-1"] iframe').src`));
 check('sources ribbon sits right under the timeline; disclaimer footer at the bottom', await ev(`(() => { const s = document.querySelector('#credits-sources'), d = document.querySelector('#disclaimer'); const t = document.querySelector('#transport').getBoundingClientRect(), sr = s.getBoundingClientRect(); return /CNN/.test(s.textContent) && Math.abs(sr.top - t.bottom) <= 1 && /non-partisan/.test(d.textContent) && /endorses no candidate/.test(d.title) && d.getBoundingClientRect().bottom <= innerHeight; })()`));
 check('bar status shows simulation clock', await ev(`/SIMULATION/.test(document.querySelector('#status').textContent)`), await ev(`document.querySelector('#status').textContent`));
-check('site notice banner hidden while config/notice.json is disabled', await ev(`document.querySelector('#notice-banner').hidden`));
+check('site notice banner shown with the configured text', await ev(`(() => { const b = document.querySelector('#notice-banner'); return !b.hidden && /timeline/i.test(b.textContent) && !!b.querySelector('[data-action="timeline"]'); })()`), await ev(`document.querySelector('#notice-banner').textContent.slice(0, 60)`));
 await shot('ws1.png');
 
 // reader window: open the first headline, expect extracted text or a clear failure note, then Esc
@@ -124,6 +124,10 @@ await ev(`(() => { const i = document.querySelector('#launcher-input'); i.value 
 const items = await ev(`[...document.querySelectorAll('#launcher-list li[data-i]')].map(l => l.textContent.trim()).join(' | ')`);
 await ev(`document.querySelector('#launcher-list li[data-i]').click()`); await sleep(900);
 check('launcher created stream-2', await ev(`!!document.querySelector('[data-win="stream-2"]')`), items);
+
+// notice banner: dismiss hides it and is remembered per message text
+await ev(`document.querySelector('#notice-banner .x').click()`); await sleep(200);
+check('notice banner dismissed', await ev(`document.querySelector('#notice-banner').hidden && Object.keys(localStorage).some(k => k.startsWith('us-dash-notice:'))`));
 
 // light mode: the bar button flips data-theme, the choice survives a reload, and the favicon is served
 await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
